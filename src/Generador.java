@@ -39,19 +39,17 @@ public class Generador {
 	}
 
 	public static void generarCodigoObjeto(NodoBase raiz) {
-		System.out.println();
-		System.out.println();
-		System.out.println("------ CODIGO OBJETO DEL LENGUAJE TINY GENERADO PARA LA TM ------");
-		System.out.println();
-		System.out.println();
+		UtGen.LimpiarArchivo();
+		UtGen.Imprimir("");
+		UtGen.emitirComentario("------ CODIGO OBJETO DEL LENGUAJE TINY GENERADO PARA LA TM ------");
+		UtGen.Imprimir("");
 		generarPreludioEstandar();
 		generar(raiz);
 		/* Genero el codigo de finalizacion de ejecucion del codigo */
 		UtGen.emitirComentario("Fin de la ejecucion.");
 		UtGen.emitirRO("HALT", 0, 0, 0, "");
-		System.out.println();
-		System.out.println();
-		System.out.println("------ FIN DEL CODIGO OBJETO DEL LENGUAJE TINY GENERADO PARA LA TM ------");
+		UtGen.Imprimir("");
+		UtGen.emitirComentario("------ FIN DEL CODIGO OBJETO DEL LENGUAJE TINY GENERADO PARA LA TM ------");
 	}
 
 	// Funcion principal de generacion de codigo
@@ -75,7 +73,7 @@ public class Generador {
 			} else if (nodo instanceof NodoOperacion) {
 				generarOperacion(nodo);
 			} else {
-				System.out.println("BUG: Tipo de nodo a generar desconocido");
+				UtGen.emitirComentario("BUG: Tipo de nodo a generar desconocido");
 			}
 			/*
 			 * Si el hijo de extrema izquierda tiene hermano a la derecha lo genero tambien
@@ -83,8 +81,7 @@ public class Generador {
 			if (nodo.TieneHermano())
 				generar(nodo.getHermanoDerecha());
 		} else
-			System.out
-					.println("���ERROR: por favor fije la tabla de simbolos a usar antes de generar codigo objeto!!!");
+			UtGen.emitirComentario("���ERROR: por favor fije la tabla de simbolos a usar antes de generar codigo objeto!!!");
 	}
 
 	private static void generarIf(NodoBase nodo) {

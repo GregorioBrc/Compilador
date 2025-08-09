@@ -10,7 +10,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.Buffer;
 
 public class UtGen {
 	private static int instruccionActual = 0; // Direccion (num linea) actual de emision de la instruccion
@@ -43,15 +42,19 @@ public class UtGen {
 
 	/* Defino al registro[1] como el acumulador 2 */
 	public static int AC1 = 1;
-
-	public UtGen() {
-		Fl = new File("CodigoTiny.tiny");
-	}
-
+	
 	public static void Imprimir(String s) {
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(Fl))) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(new File("CodigoTiny.tiny"), true))) {
 			bw.write(s);
 			bw.newLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void LimpiarArchivo() {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(new File("CodigoTiny.tiny"), false))) {
+			bw.write("");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -60,7 +63,7 @@ public class UtGen {
 	public static void emitirComentario(String c) {
 		if (debug) {
 			System.out.println("*      " + c);
-			Imprimir(c);
+			Imprimir("*      " + c);
 		}
 	}
 
@@ -78,7 +81,7 @@ public class UtGen {
 	public static void emitirRO(String op, int r, int s, int t, String c) {
 		Imprimir((instruccionActual++) + ":       " + op + "       " + r + "," + s + "," + t);
 		if (debug)
-			Imprimir("      " + c);
+			Imprimir("*      " + c);
 		if (instruccionMasAlta < instruccionActual)
 			instruccionMasAlta = instruccionActual;
 	}
@@ -97,7 +100,7 @@ public class UtGen {
 	public static void emitirRM(String op, int r, int d, int s, String c) {
 		Imprimir((instruccionActual++) + ":       " + op + "       " + r + "," + d + "(" + s + ")");
 		if (debug)
-			Imprimir("      " + c);
+			Imprimir("*      " + c);
 		if (instruccionMasAlta < instruccionActual)
 			instruccionMasAlta = instruccionActual;
 	}
@@ -121,7 +124,7 @@ public class UtGen {
 	 */
 	public static void cargarRespaldo(int direccion) {
 		if (instruccionActual > instruccionMasAlta)
-			emitirComentario("BUG encontrado en la funcion cargarRespaldo");
+			emitirComentario("*BUG encontrado en la funcion cargarRespaldo");
 		instruccionActual = direccion;
 	}
 
@@ -150,7 +153,7 @@ public class UtGen {
 				+ "(" + PC + ")");
 		++instruccionActual;
 		if (debug)
-			Imprimir("      " + c);
+			Imprimir("*      " + c);
 		if (instruccionMasAlta < instruccionActual)
 			instruccionMasAlta = instruccionActual;
 	}
