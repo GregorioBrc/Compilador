@@ -5,26 +5,26 @@ public class NodoIf extends NodoBase {
 	private NodoBase prueba;
 	private NodoBase parteThen;
 	private NodoBase parteElse;
-	
+
 	public NodoIf(NodoBase prueba, NodoBase parteThen) {
 		super();
 		this.prueba = prueba;
 		this.parteThen = parteThen;
 		this.parteElse = null;
 	}
-	
+
 	public NodoIf(NodoBase prueba, NodoBase parteThen, NodoBase parteElse) {
 		super();
 		this.prueba = prueba;
 		this.parteThen = parteThen;
 		this.parteElse = parteElse;
 	}
-	
+
 	public NodoIf() {
 		super();
 		this.prueba = null;
 		this.parteThen = null;
-		this.parteElse = null;		
+		this.parteElse = null;
 	}
 
 	public NodoBase getPrueba() {
@@ -50,7 +50,5 @@ public class NodoIf extends NodoBase {
 	public void setParteElse(NodoBase parteElse) {
 		this.parteElse = parteElse;
 	}
-	
-	
-	
+
 }

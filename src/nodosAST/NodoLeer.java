@@ -10,7 +10,7 @@ public class NodoLeer extends NodoBase {
 
 	public NodoLeer() {
 		super();
-		id="";
+		id = "";
 	}
 
 	public String getIdentificador() {

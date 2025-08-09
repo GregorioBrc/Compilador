@@ -1,12 +1,13 @@
 package nodosAST;
 
 public class NodoBase {
-	/*Esta clase fue creada para tener un origen comun de todas las clases...
+	/*
+	 * Esta clase fue creada para tener un origen comun de todas las clases...
 	 * 
 	 * ESTE MODELO DE AST PUEDE SER MEJORADO DE MUCHAS FORMAS, POR SIMPLIFICACION Y
 	 * DIDACTICA EN CLASE, SE LLEVARA A CABO DE FORMA MUY SIMPLE Y POCO FLEXIBLE
-	 * */
-	
+	 */
+
 	private NodoBase HermanoDerecha;
 
 	public NodoBase(NodoBase hermanoDerecha) {
@@ -16,7 +17,7 @@ public class NodoBase {
 
 	public NodoBase() {
 		super();
-		HermanoDerecha=null;
+		HermanoDerecha = null;
 	}
 
 	public NodoBase getHermanoDerecha() {
@@ -26,9 +27,9 @@ public class NodoBase {
 	public void setHermanoDerecha(NodoBase hermanoDerecha) {
 		HermanoDerecha = hermanoDerecha;
 	}
-	
+
 	public boolean TieneHermano() {
-		return (HermanoDerecha!=null);
+		return (HermanoDerecha != null);
 	}
-	
+
 }

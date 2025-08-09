@@ -10,7 +10,7 @@ public class NodoEscribir extends NodoBase {
 
 	public NodoEscribir() {
 		super();
-		expresion=null;
+		expresion = null;
 	}
 
 	public NodoBase getExpresion() {
@@ -20,5 +20,5 @@ public class NodoEscribir extends NodoBase {
 	public void setExpresion(NodoBase expresion) {
 		this.expresion = expresion;
 	}
-	
+
 }

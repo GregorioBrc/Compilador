@@ -4,17 +4,17 @@ public class NodoRepeat extends NodoBase {
 
 	private NodoBase cuerpo;
 	private NodoBase prueba;
-	
+
 	public NodoRepeat(NodoBase cuerpo, NodoBase prueba) {
 		super();
 		this.cuerpo = cuerpo;
 		this.prueba = prueba;
 	}
-	
+
 	public NodoRepeat() {
 		super();
 		this.cuerpo = null;
-		this.prueba = null;		
+		this.prueba = null;
 	}
 
 	public NodoBase getCuerpo() {
@@ -32,9 +32,5 @@ public class NodoRepeat extends NodoBase {
 	public void setPrueba(NodoBase prueba) {
 		this.prueba = prueba;
 	}
-	
-	
-	
-	
-	
+
 }
