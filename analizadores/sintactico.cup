@@ -2,37 +2,6 @@ import java_cup.runtime.*;
 import nodosAST.*;
 import java.io.InputStreamReader;
 
-
-parser code {:
-
-/***********
-SymbolFactory es una nueva caracteristica que ha sido a�adida a las version 11a de cup, la cual facilita la implementacion de clases Symbol personalizadas
-, esto debido a que dicha clase no provee mucha informaci�n de contexto que podria ser util para el analisis semantico o ayudar en la construccion del AST
-Mas informacion en: http//4thmouse.com/index.php/2007/02/15/using-custom-symbols-in-cup/
-***********/
-	public static void main(String args[]) throws Exception {
-		SymbolFactory sf = new DefaultSymbolFactory();
-		parser parser_obj;
-		if (args.length==0) 
-			parser_obj=new parser(new Lexico(new InputStreamReader(System.in),sf),sf);
-		else
-			parser_obj=new parser(new Lexico(new InputStreamReader(new java.io.FileInputStream(args[0])),sf),sf);
-
-		parser_obj.parse();
-		NodoBase root=parser_obj.action_obj.getASTroot();
-		System.out.println();
-		System.out.println("IMPRESION DEL AST GENERADO");
-		System.out.println();
-        Util.imprimirAST(root);
-		TablaSimbolos ts = new TablaSimbolos();
-		ts.cargarTabla(root);
-		ts.ImprimirClaves();
-		Generador.setTablaSimbolos(ts);
-		Generador.generarCodigoObjeto(root);
-	}
-
-:}
-
 action code {:
 	private boolean debug=true;
 	private NodoBase ast=null;
@@ -89,6 +58,7 @@ non terminal NodoBase simple_exp;
 non terminal NodoBase term;
 non terminal NodoBase factor;
 non terminal NodoBase Array;
+non terminal NodoBase Identificador;
 
 /* Precedencia de operadores */
 precedence left PLUS;
@@ -155,23 +125,26 @@ repeat_stmt ::= REPEAT stmt_seq:cuerpo UNTIL exp:prueba	{: if(debug) System.out.
 							:}
 		;
 
-assign_stmt ::= ID:variable 	{: if(debug) System.out.println("\t regla 6 parte del medio"); 
+assign_stmt ::= Identificador:variable 	{: if(debug) System.out.println("\t regla 6 parte del medio"); 
 				/*lineanum=1000; //Pasar/Obtener la linea correcta por el Simbolo
 				String nombre = variable.getName();*/
 				:}
 			ASSIGN exp:ex	{: if(debug) System.out.println("\t regla 6 parte final");
-					if(variable!=null)
-					RESULT = new NodoAsignacion(variable.toString(),ex);
+					if(variable!=null){
+						if(variable instanceof NodoIdentificador)
+							RESULT = new NodoAsignacion(variable.toString(),ex);
+						if(variable instanceof NodoArray)
+							RESULT = new NodoAsignacion_Array(((NodoArray) variable).getId(), ex, ((NodoArray) variable).getExpresion());
+					}
 					else{
 					RESULT = null;
 					System.out.println("Ocurrio error en cup # 0001");
 					}
 					:}
-			| Array:Arr ASSIGN exp:ex {: if(debug) System.out.println("\t regla 6 parte final Array");
-				System.out.println("\t Asignar Array" + Arr.toString() + " | " + ex.toString());
-			:};
+			;
 
-read_stmt   ::= READ ID:variable	{: if(debug) System.out.println("\t regla 7"); 
+
+read_stmt   ::= READ ID:variable	{: if(debug) System.out.println("\t regla 7");
 					System.out.println("Leyendo Variable");
 					if(variable!=null)
 					RESULT = new NodoLeer(variable.toString());
@@ -182,7 +155,7 @@ read_stmt   ::= READ ID:variable	{: if(debug) System.out.println("\t regla 7");
 					:}
 		;
 
-write_stmt  ::= WRITE exp:ex	{: if(debug) System.out.println("\t regla 8"); 
+write_stmt  ::= WRITE exp:ex	{: if(debug) System.out.println("\t regla 8");
 					RESULT= new NodoEscribir(ex);
 					:}
 		;
@@ -236,7 +209,7 @@ factor      ::= LPAREN exp:ex RPAREN	{: if(debug) System.out.println("\t regla 1
 							RESULT = ex;
 							:}
 		| NUM:valor	{: if(debug) System.out.println("\t regla 12b"); 
-					System.out.println("Devolvi nodo numero entero");
+					System.out.println("Devolvi nodo numero entero" + valor);
 					if(valor!=null){
 						RESULT= new NodoValor(Integer.parseInt(valor));
 					}else{
@@ -244,7 +217,23 @@ factor      ::= LPAREN exp:ex RPAREN	{: if(debug) System.out.println("\t regla 1
 						System.out.println("Ocurrio error en cup # 0005");
 					}
 					:}
-		| ID:variable	{: if(debug) System.out.println("\t regla 12c"); 
+		| Identificador: Id {:RESULT = Id;:}
+
+		| error	{: if(debug) System.out.println("\t regla 12e"); 
+				System.out.println("Ocurrio error en cup # 0003");
+				RESULT=null;
+				:}
+		;
+
+Array ::= ID:id LBRACKET simple_exp:ex RBRACKET	{: 
+					if(debug) {System.out.println("\t regla 13, Crear NodoArray"); }
+					//System.out.println("Id: " + id + " | " + ex);}
+					RESULT = new NodoArray(id, ex);
+					//RESULT = ex;
+					:}
+		;
+
+Identificador ::= 	ID:variable	{: if(debug) System.out.println("\t regla 12c"); 
 					if(variable!=null){
 						System.out.println("Construyendo Nodo ID para Lexema: "+ variable.toString());
 						RESULT= new NodoIdentificador(variable.toString());		
@@ -253,24 +242,13 @@ factor      ::= LPAREN exp:ex RPAREN	{: if(debug) System.out.println("\t regla 1
 						System.out.println("Ocurrio error en cup # 0005");
 					}
 					:}
-		| Array:Arr	{: if(debug) System.out.println("\t regla 12d"); 
+					| Array:Arr	{: if(debug) System.out.println("\t regla 12d"); 
 					if(Arr!=null){
-						System.out.println("Construyendo Nodo ID para Lexema: "+ Arr.toString());
-						RESULT= new NodoIdentificador(Arr.toString());		
+						System.out.println("Lanzo Array Arriba: "+ Arr.toString());
+						RESULT= Arr;
 					}else{
 						RESULT = null;
 						System.out.println("Ocurrio error en cup # 0005");
 					}
 					:}
-		| error	{: if(debug) System.out.println("\t regla 12c"); 
-				System.out.println("Ocurrio error en cup # 0003");
-				RESULT=null;
-				:}
-		;
-
-Array ::= ID:id LBRACKET simple_exp:ex RBRACKET	{: 
-					if(debug) {System.out.println("\t regla 13"); 
-					System.out.println("Id: " + id + " | " + ex);}
-					RESULT = ex;
-					:}
-		;
+					;
