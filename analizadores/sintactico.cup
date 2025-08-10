@@ -1,7 +1,5 @@
-package ve.edu.unet;
-
 import java_cup.runtime.*;
-import ve.edu.unet.nodosAST.*;
+import nodosAST.*;
 import java.io.InputStreamReader;
 
 
@@ -72,7 +70,10 @@ terminal TIMES;
 terminal OVER;
 terminal LPAREN;
 terminal RPAREN;
+terminal LBRACKET;
+terminal RBRACKET;
 terminal SEMI;
+
 
 /* Simbolos No Terminales */
 non terminal program;
@@ -87,6 +88,7 @@ non terminal NodoBase exp;
 non terminal NodoBase simple_exp;
 non terminal NodoBase term;
 non terminal NodoBase factor;
+non terminal NodoBase Array;
 
 /* Precedencia de operadores */
 precedence left PLUS;
@@ -132,7 +134,9 @@ stmt        ::= if_stmt:sif	{: if(debug) System.out.println("\t regla 3a");
             | write_stmt:sesc	{: if(debug) System.out.println("\t regla 3e"); 
 					RESULT=sesc;
 					:}
-            | error	{: if(debug) System.out.println("\t regla 3f"); 
+			| Array {:if(debug) System.out.println("\t regla 3f");
+					:}
+            | error	{: if(debug) System.out.println("\t regla 3g"); 
 				System.out.println("Ocurrio error en cup # 0004 C");
 				RESULT=null;
 				:}
@@ -163,7 +167,9 @@ assign_stmt ::= ID:variable 	{: if(debug) System.out.println("\t regla 6 parte d
 					System.out.println("Ocurrio error en cup # 0001");
 					}
 					:}
-		;
+			| Array:Arr ASSIGN exp:ex {: if(debug) System.out.println("\t regla 6 parte final Array");
+				System.out.println("\t Asignar Array" + Arr.toString() + " | " + ex.toString());
+			:};
 
 read_stmt   ::= READ ID:variable	{: if(debug) System.out.println("\t regla 7"); 
 					System.out.println("Leyendo Variable");
@@ -247,8 +253,24 @@ factor      ::= LPAREN exp:ex RPAREN	{: if(debug) System.out.println("\t regla 1
 						System.out.println("Ocurrio error en cup # 0005");
 					}
 					:}
-		| error	{: if(debug) System.out.println("\t regla 12d"); 
+		| Array:Arr	{: if(debug) System.out.println("\t regla 12d"); 
+					if(Arr!=null){
+						System.out.println("Construyendo Nodo ID para Lexema: "+ Arr.toString());
+						RESULT= new NodoIdentificador(Arr.toString());		
+					}else{
+						RESULT = null;
+						System.out.println("Ocurrio error en cup # 0005");
+					}
+					:}
+		| error	{: if(debug) System.out.println("\t regla 12c"); 
 				System.out.println("Ocurrio error en cup # 0003");
 				RESULT=null;
 				:}
+		;
+
+Array ::= ID:id LBRACKET simple_exp:ex RBRACKET	{: 
+					if(debug) {System.out.println("\t regla 13"); 
+					System.out.println("Id: " + id + " | " + ex);}
+					RESULT = ex;
+					:}
 		;

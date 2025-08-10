@@ -32,4 +32,13 @@ public class NodoAsignacion extends NodoBase {
 		this.expresion = expresion;
 	}
 
+	public class NodoAsignacion_Array extends NodoAsignacion {
+
+		public NodoAsignacion_Array(String identificador) {
+			super(identificador);
+			//TODO Auto-generated constructor stub
+		}
+
+	}
+
 }

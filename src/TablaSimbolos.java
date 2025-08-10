@@ -23,21 +23,29 @@ public class TablaSimbolos {
 			/* Hago el recorrido recursivo */
 			if (raiz instanceof NodoIf) {
 				cargarTabla(((NodoIf) raiz).getPrueba());
+
 				cargarTabla(((NodoIf) raiz).getParteThen());
+
 				if (((NodoIf) raiz).getParteElse() != null) {
 					cargarTabla(((NodoIf) raiz).getParteElse());
 				}
+
 			} else if (raiz instanceof NodoRepeat) {
 				cargarTabla(((NodoRepeat) raiz).getCuerpo());
+
 				cargarTabla(((NodoRepeat) raiz).getPrueba());
+
 			} else if (raiz instanceof NodoAsignacion)
 				cargarTabla(((NodoAsignacion) raiz).getExpresion());
+
 			else if (raiz instanceof NodoEscribir)
 				cargarTabla(((NodoEscribir) raiz).getExpresion());
+
 			else if (raiz instanceof NodoOperacion) {
 				cargarTabla(((NodoOperacion) raiz).getOpIzquierdo());
 				cargarTabla(((NodoOperacion) raiz).getOpDerecho());
 			}
+
 			raiz = raiz.getHermanoDerecha();
 		}
 	}
