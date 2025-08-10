@@ -75,6 +75,9 @@ espacio		= [ \t]+
 "write"         {	if(debug) System.out.println("token WRITE");
 			return sf.newSymbol("WRITE",sym.WRITE);}
 
+"var"         {	if(debug) System.out.println("token var");
+			return sf.newSymbol("var",sym.VAR);}
+
 "<="             {	if(debug) System.out.println("token LE");
 			return sf.newSymbol("LE",sym.LE);}
 

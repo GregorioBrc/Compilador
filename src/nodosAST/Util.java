@@ -17,6 +17,9 @@ public class Util {
 			else if (raiz instanceof NodoAsignacion)
 				System.out.println("Asignacion a: " + ((NodoAsignacion) raiz).getIdentificador());
 
+			else if (raiz instanceof NodoAsignacion_Array)
+				System.out.println("Asignacion a: " + ((NodoAsignacion_Array) raiz).getIdentificador() + "[]");
+
 			else if (raiz instanceof NodoLeer)
 				System.out.println("Lectura: " + ((NodoLeer) raiz).getIdentificador());
 
@@ -25,6 +28,7 @@ public class Util {
 
 			else if (raiz instanceof NodoOperacion
 					|| raiz instanceof NodoValor
+					|| raiz instanceof NodoArray
 					|| raiz instanceof NodoIdentificador)
 				imprimirNodo(raiz);
 			else

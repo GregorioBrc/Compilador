@@ -2,18 +2,18 @@ package nodosAST;
 
 public class NodoArray extends NodoBase {
     private String id;
-    private NodoBase expresion;
+    private NodoBase Arg;
 
     public NodoArray(String id, NodoBase expresion) {
         super();
         this.id = id;
-        this.expresion = expresion;
+        this.Arg = expresion;
     }
 
     public NodoArray() {
         super();
         this.id = "";
-        this.expresion = null;
+        this.Arg = null;
     }
 
     public String getId() {
@@ -24,12 +24,12 @@ public class NodoArray extends NodoBase {
         this.id = id;
     }
 
-    public NodoBase getExpresion() {
-        return expresion;
+    public NodoBase getArg() {
+        return Arg;
     }
 
-    public void setExpresion(NodoBase expresion) {
-        this.expresion = expresion;
+    public void setArg(NodoBase expresion) {
+        this.Arg = expresion;
     }
 
 }

@@ -34,6 +34,7 @@ public class sym {
   public static final int ASSIGN = 12;
   public static final int EQ = 13;
   public static final int REPEAT = 6;
+  public static final int VAR = 28;
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
@@ -62,7 +63,8 @@ public class sym {
   "RPAREN",
   "LBRACKET",
   "RBRACKET",
-  "SEMI"
+  "SEMI",
+  "VAR"
   };
 }
 

@@ -42,6 +42,7 @@ terminal RPAREN;
 terminal LBRACKET;
 terminal RBRACKET;
 terminal SEMI;
+terminal VAR;
 
 
 /* Simbolos No Terminales */
@@ -104,7 +105,12 @@ stmt        ::= if_stmt:sif	{: if(debug) System.out.println("\t regla 3a");
             | write_stmt:sesc	{: if(debug) System.out.println("\t regla 3e"); 
 					RESULT=sesc;
 					:}
-			| Array {:if(debug) System.out.println("\t regla 3f");
+			| VAR Array:arr {:if(debug) System.out.println("\t regla 3f, declarar Array");
+            		NodoBase Ax = ((NodoArray) arr).getArg();
+            		if (!(Ax instanceof NodoValor)) {
+            		  throw new Exception("Error: El argumento de un Array debe ser un valor");
+            		}
+						RESULT = arr;
 					:}
             | error	{: if(debug) System.out.println("\t regla 3g"); 
 				System.out.println("Ocurrio error en cup # 0004 C");
@@ -116,7 +122,7 @@ if_stmt     ::= IF exp:ex THEN stmt_seq:pthen END	{: if(debug) System.out.printl
 		RESULT = new NodoIf(ex,pthen);
 		:}
 		| IF exp:ex THEN stmt_seq:pthen ELSE stmt_seq:pelse END	{: if(debug) System.out.println("\t regla 4b"); 
-		RESULT = new NodoIf(ex,pthen,pelse);		
+		RESULT = new NodoIf(ex,pthen,pelse);
 		:}
 		;
 
@@ -134,7 +140,7 @@ assign_stmt ::= Identificador:variable 	{: if(debug) System.out.println("\t regl
 						if(variable instanceof NodoIdentificador)
 							RESULT = new NodoAsignacion(variable.toString(),ex);
 						if(variable instanceof NodoArray)
-							RESULT = new NodoAsignacion_Array(((NodoArray) variable).getId(), ex, ((NodoArray) variable).getExpresion());
+							RESULT = new NodoAsignacion_Array(((NodoArray) variable).getId(), ex, ((NodoArray) variable).getArg());
 					}
 					else{
 					RESULT = null;

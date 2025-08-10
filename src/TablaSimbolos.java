@@ -18,6 +18,8 @@ public class TablaSimbolos {
 			if (raiz instanceof NodoIdentificador) {
 				InsertarSimbolo(((NodoIdentificador) raiz).getNombre(), -1);
 				// TODO: A�adir el numero de linea y localidad de memoria correcta
+			} else if (raiz instanceof NodoArray) {
+				InsertarSimbolo_Array((NodoArray)raiz, -1);
 			}
 
 			/* Hago el recorrido recursivo */
@@ -58,6 +60,19 @@ public class TablaSimbolos {
 		} else {
 			simbolo = new RegistroSimbolo(identificador, numLinea, direccion++);
 			tabla.put(identificador, simbolo);
+			return true;
+		}
+	}
+
+	public boolean InsertarSimbolo_Array(NodoArray array, int numLinea) {
+		RegistroSimbolo simbolo;
+		if (tabla.containsKey(array.getId())) {
+			return false;
+		} else {
+			int ax = ((NodoValor)array.getArg()).getValor();
+			simbolo = new RegistroArray(array.getId(), numLinea, direccion, ax);
+			direccion += ax;
+			tabla.put(array.getId(), simbolo);
 			return true;
 		}
 	}
