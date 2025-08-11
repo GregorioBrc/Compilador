@@ -63,10 +63,10 @@ non terminal NodoBase term;
 non terminal NodoBase factor;
 non terminal NodoBase Array;
 non terminal NodoBase Identificador;
-non terminal NodoBase Variable;
 non terminal NodoBase Fun_Call;
 non terminal NodoBase Fun_Decla;
-non terminal NodoBase Fun_Params;
+non terminal NodoBase Fun_Params_Decla;
+non terminal NodoBase Fun_Params_Call;
 
 
 /* Precedencia de operadores */
@@ -94,7 +94,7 @@ stmt_seq    ::= stmt_seq:ini SEMI stmt:sent	{: if(debug) System.out.println("\t 
 						}
 						:}
             | stmt:sent	{: if(debug) System.out.println("\t regla 2b"); 
-				RESULT=sent;				
+				RESULT=sent;
 				:}
 		;
 
@@ -121,6 +121,11 @@ stmt        ::= if_stmt:sif	{: if(debug) System.out.println("\t regla 3a");
 					RESULT = new NodoArrayDeclarar((NodoArray)arr);
 
 					:}
+
+			| Fun_Decla:decla {:if(debug) System.out.println("\t regla 3f, declarar Funcion");:}
+			
+			| Fun_Call:call {:if(debug) System.out.println("\t regla 3f, llamar Funcion");:}
+
             | error	{: if(debug) System.out.println("\t regla 3g"); 
 				System.out.println("Ocurrio error en cup # 0004 C");
 				RESULT=null;
@@ -140,11 +145,7 @@ repeat_stmt ::= REPEAT stmt_seq:cuerpo UNTIL exp:prueba	{: if(debug) System.out.
 							:}
 		;
 
-assign_stmt ::= Variable:var 	{: if(debug) System.out.println("\t regla 6 parte del medio"); 
-				/*lineanum=1000; //Pasar/Obtener la linea correcta por el Simbolo
-				String nombre = var.getName();*/
-				:}
-			ASSIGN exp:ex	{: if(debug) System.out.println("\t regla 6 parte final");
+assign_stmt ::= Identificador:var ASSIGN exp:ex	{: if(debug) System.out.println("\t regla 6 parte final");
 					if(var!=null){
 						if(var instanceof NodoIdentificador)
 							RESULT = new NodoAsignacion(((NodoIdentificador) var).getNombre(),ex);
@@ -234,6 +235,8 @@ factor      ::= LPAREN exp:ex RPAREN	{: if(debug) System.out.println("\t regla 1
 					:}
 		| Identificador: Id {:RESULT = Id;:}
 
+		| Fun_Call {:System.out.println("Llamado valor Funcion");:}
+
 		| error	{: if(debug) System.out.println("\t regla 12e"); 
 				System.out.println("Ocurrio error en cup # 0003");
 				RESULT=null;
@@ -248,7 +251,7 @@ Array ::= ID:id LBRACKET simple_exp:ex RBRACKET	{:
 					:}
 		;
 
-Variable ::= 	ID:variable	{: if(debug) System.out.println("\t regla 12c"); 
+Identificador ::= 	ID:variable	{: if(debug) System.out.println("\t regla 12c"); 
 					if(variable!=null){
 						System.out.println("Construyendo Nodo ID para Lexema: "+ variable.toString());
 						RESULT= new NodoIdentificador(variable.toString());		
@@ -268,10 +271,13 @@ Variable ::= 	ID:variable	{: if(debug) System.out.println("\t regla 12c");
 					:}
 					;
 
-Identificador ::= Variable:var {:RESULT = var; :} | Fun_Call ;
+Fun_Params_Call ::= Fun_Params_Call COMA simple_exp | simple_exp | ;
 
-Fun_Params ::= Fun_Params COMA simple_exp | simple_exp;
+Fun_Params_Decla ::= Fun_Params_Decla COMA ID | ID | ;
 
-Fun_Decla ::= FUN ID LPAREN Fun_Params RPAREN stmt_seq END ;
+Fun_Decla ::= FUN ID LPAREN Fun_Params_Decla RPAREN stmt_seq END {:System.out.println("Declarar Funcion void");:}
+			| FUN ID LPAREN Fun_Params_Decla RPAREN stmt_seq RETURN simple_exp END {:System.out.println("Declarar Funcion return");:}
+			;
 
-Fun_Call ::= ID LPAREN Fun_Params RPAREN ;
+Fun_Call ::= ID LPAREN Fun_Params_Call RPAREN {:System.out.println("llamada Funcion");:}
+		;
