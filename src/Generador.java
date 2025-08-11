@@ -60,7 +60,7 @@ public class Generador {
 				generarIf(nodo);
 			} else if (nodo instanceof NodoRepeat) {
 				generarRepeat(nodo);
-			} else if (nodo instanceof NodoAsignacion) {
+			} else if (nodo instanceof NodoAsignacion && !(nodo instanceof NodoAsignacion_Array)) {
 				generarAsignacion(nodo);
 			} else if (nodo instanceof NodoLeer) {
 				generarLeer(nodo);
@@ -72,6 +72,10 @@ public class Generador {
 				generarIdentificador(nodo);
 			} else if (nodo instanceof NodoOperacion) {
 				generarOperacion(nodo);
+			} else if (nodo instanceof NodoArray) {
+				generarAccesoArray(nodo);
+			} else if (nodo instanceof NodoAsignacion_Array) {
+				generarAsignacionArray(nodo);
 			} else {
 				UtGen.emitirComentario("BUG: Tipo de nodo a generar desconocido");
 			}
@@ -81,7 +85,8 @@ public class Generador {
 			if (nodo.TieneHermano())
 				generar(nodo.getHermanoDerecha());
 		} else
-			UtGen.emitirComentario("���ERROR: por favor fije la tabla de simbolos a usar antes de generar codigo objeto!!!");
+			UtGen.emitirComentario(
+					"���ERROR: por favor fije la tabla de simbolos a usar antes de generar codigo objeto!!!");
 	}
 
 	private static void generarIf(NodoBase nodo) {
@@ -190,67 +195,118 @@ public class Generador {
 			UtGen.emitirComentario("-> identificador");
 	}
 
-private static void generarOperacion(NodoBase nodo){
-    NodoOperacion n = (NodoOperacion) nodo;
-    if(UtGen.debug)	UtGen.emitirComentario("-> Operacion: " + n.getOperacion());
-    /* Genero la expresion izquierda de la operacion */
-    generar(n.getOpIzquierdo());
-    /* Almaceno en la pseudo pila de valor temporales el valor de la operacion izquierda */
-    UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP, "op: push en la pila tmp el resultado expresion izquierda");
-    /* Genero la expresion derecha de la operacion */
-    generar(n.getOpDerecho());
-    /* Ahora cargo/saco de la pila el valor izquierdo */
-    UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP, "op: pop o cargo de la pila el valor izquierdo en AC1");
-    switch(n.getOperacion()){
-        case	mas:	UtGen.emitirRO("ADD", UtGen.AC, UtGen.AC1, UtGen.AC, "op: +");
-                        break;
-        case	menos:	UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: -");
-                        break;
-        case	por:	UtGen.emitirRO("MUL", UtGen.AC, UtGen.AC1, UtGen.AC, "op: *");
-                        break;
-        case	entre:	UtGen.emitirRO("DIV", UtGen.AC, UtGen.AC1, UtGen.AC, "op: /");
-                        break;
-        case	menor:	UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: <");
-                        UtGen.emitirRM("JLT", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC<0)");
-                        UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
-                        UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
-                        UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
-                        break;
-        case	menor_igual: UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: <=");
-                        UtGen.emitirRM("JLE", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC<=0)");
-                        UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
-                        UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
-                        UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
-                        break;
-        case	mayor:	UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: >");
-                        UtGen.emitirRM("JGT", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC>0)");
-                        UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
-                        UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
-                        UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
-                        break;
-        case	mayor_igual: UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: >=");
-                        UtGen.emitirRM("JGE", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC>=0)");
-                        UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
-                        UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
-                        UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
-                        break;
-        case	igual:	UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: ==");
-                        UtGen.emitirRM("JEQ", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC==0)");
-                        UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
-                        UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
-                        UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
-                        break;
-        case	distinto: UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: !=");
-                        UtGen.emitirRM("JNE", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC!=0)");
-                        UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
-                        UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
-                        UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
-                        break;
-        default:
-                        UtGen.emitirComentario("BUG: tipo de operacion desconocida");
-    }
-    if(UtGen.debug)	UtGen.emitirComentario("<- Operacion: " + n.getOperacion());
-}
+	private static void generarOperacion(NodoBase nodo) {
+		NodoOperacion n = (NodoOperacion) nodo;
+		if (UtGen.debug)
+			UtGen.emitirComentario("-> Operacion: " + n.getOperacion());
+		/* Genero la expresion izquierda de la operacion */
+		generar(n.getOpIzquierdo());
+		/*
+		 * Almaceno en la pseudo pila de valor temporales el valor de la operacion
+		 * izquierda
+		 */
+		UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP,
+				"op: push en la pila tmp el resultado expresion izquierda");
+		/* Genero la expresion derecha de la operacion */
+		generar(n.getOpDerecho());
+		/* Ahora cargo/saco de la pila el valor izquierdo */
+		UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP,
+				"op: pop o cargo de la pila el valor izquierdo en AC1");
+		switch (n.getOperacion()) {
+			case mas:
+				UtGen.emitirRO("ADD", UtGen.AC, UtGen.AC1, UtGen.AC, "op: +");
+				break;
+			case menos:
+				UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: -");
+				break;
+			case por:
+				UtGen.emitirRO("MUL", UtGen.AC, UtGen.AC1, UtGen.AC, "op: *");
+				break;
+			case entre:
+				UtGen.emitirRO("DIV", UtGen.AC, UtGen.AC1, UtGen.AC, "op: /");
+				break;
+			case menor:
+				UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: <");
+				UtGen.emitirRM("JLT", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC<0)");
+				UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
+				UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
+				UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
+				break;
+			case menor_igual:
+				UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: <=");
+				UtGen.emitirRM("JLE", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC<=0)");
+				UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
+				UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
+				UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
+				break;
+			case mayor:
+				UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: >");
+				UtGen.emitirRM("JGT", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC>0)");
+				UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
+				UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
+				UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
+				break;
+			case mayor_igual:
+				UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: >=");
+				UtGen.emitirRM("JGE", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC>=0)");
+				UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
+				UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
+				UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
+				break;
+			case igual:
+				UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: ==");
+				UtGen.emitirRM("JEQ", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC==0)");
+				UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
+				UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
+				UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
+				break;
+			case distinto:
+				UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: !=");
+				UtGen.emitirRM("JNE", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC!=0)");
+				UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "caso de falso (AC=0)");
+				UtGen.emitirRM("LDA", UtGen.PC, 1, UtGen.PC, "Salto incondicional para evitar el caso verdadero");
+				UtGen.emitirRM("LDC", UtGen.AC, 1, UtGen.AC, "caso de verdadero (AC=1)");
+				break;
+			default:
+				UtGen.emitirComentario("BUG: tipo de operacion desconocida");
+		}
+		if (UtGen.debug)
+			UtGen.emitirComentario("<- Operacion: " + n.getOperacion());
+	}
+
+	private static void generarAsignacionArray(NodoBase nodo) {
+		NodoAsignacion_Array n = (NodoAsignacion_Array) nodo;
+		int dir_base = tablaSimbolos.getDireccion(n.getIdentificador());
+
+		// Generar Lado derecho, guarda AC
+		generar(n.getExpresion());
+		UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP,
+				"op: push Resultado");
+
+		// Generar Lado Indice, guarda AC
+		generar(n.getIndice());
+		UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP,
+				"op: push Indice");
+
+		UtGen.emitirRM("LD", UtGen.AC, ++desplazamientoTmp, UtGen.MP, "Cargar indice");
+
+		UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP, "Cargar Contenido");
+
+		UtGen.emitirRM("ST", UtGen.AC1, dir_base, UtGen.AC,
+				"Asignacion Array: Almaceno el valor en la direccion base + indice");
+	}
+
+	private static void generarAccesoArray(NodoBase nodo) {
+		NodoArray n = (NodoArray) nodo;
+		int dir_base = tablaSimbolos.getDireccion(n.getId());
+
+		generar(n.getArg());
+		UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP,
+				"op: push Indice");
+		UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP, "Cargar Indice");
+
+		UtGen.emitirRM("LD", UtGen.AC, dir_base, UtGen.AC1, "Cargar Valor Array");
+	}
 
 	// TODO: enviar preludio a archivo de salida, obtener antes su nombre
 	private static void generarPreludioEstandar() {

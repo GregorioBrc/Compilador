@@ -17,9 +17,12 @@ public class TablaSimbolos {
 		while (raiz != null) {
 			if (raiz instanceof NodoIdentificador) {
 				InsertarSimbolo(((NodoIdentificador) raiz).getNombre(), -1);
-				// TODO: A�adir el numero de linea y localidad de memoria correcta
-			} else if (raiz instanceof NodoArray) {
-				InsertarSimbolo_Array((NodoArray)raiz, -1);
+			} else if (raiz instanceof NodoArray || raiz instanceof NodoArrayDeclarar) {
+				if (raiz instanceof NodoArray) {
+					InsertarSimbolo_Array((NodoArray) raiz, -1);
+				} else {
+					InsertarSimbolo_Array(((NodoArrayDeclarar) raiz).getNd(), -1);
+				}
 			}
 
 			/* Hago el recorrido recursivo */
@@ -69,7 +72,7 @@ public class TablaSimbolos {
 		if (tabla.containsKey(array.getId())) {
 			return false;
 		} else {
-			int ax = ((NodoValor)array.getArg()).getValor();
+			int ax = ((NodoValor) array.getArg()).getValor();
 			simbolo = new RegistroArray(array.getId(), numLinea, direccion, ax);
 			direccion += ax;
 			tabla.put(array.getId(), simbolo);
@@ -93,9 +96,4 @@ public class TablaSimbolos {
 	public int getDireccion(String Clave) {
 		return BuscarSimbolo(Clave).getDireccionMemoria();
 	}
-
-	/*
-	 * TODO:
-	 * 1. Crear lista con las lineas de codigo donde la variable es usada.
-	 */
 }

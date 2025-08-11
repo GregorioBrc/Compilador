@@ -110,7 +110,8 @@ stmt        ::= if_stmt:sif	{: if(debug) System.out.println("\t regla 3a");
             		if (!(Ax instanceof NodoValor)) {
             		  throw new Exception("Error: El argumento de un Array debe ser un valor");
             		}
-						RESULT = arr;
+					RESULT = new NodoArrayDeclarar((NodoArray)arr);
+
 					:}
             | error	{: if(debug) System.out.println("\t regla 3g"); 
 				System.out.println("Ocurrio error en cup # 0004 C");

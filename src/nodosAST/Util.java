@@ -14,11 +14,13 @@ public class Util {
 			else if (raiz instanceof NodoRepeat)
 				System.out.println("Repeat");
 
-			else if (raiz instanceof NodoAsignacion)
+			else if (raiz instanceof NodoAsignacion && !(raiz instanceof NodoAsignacion_Array))
 				System.out.println("Asignacion a: " + ((NodoAsignacion) raiz).getIdentificador());
 
-			else if (raiz instanceof NodoAsignacion_Array)
+			else if (raiz instanceof NodoAsignacion_Array) {
 				System.out.println("Asignacion a: " + ((NodoAsignacion_Array) raiz).getIdentificador() + "[]");
+				imprimirNodo(((NodoAsignacion_Array) raiz).getIndice());
+			}
 
 			else if (raiz instanceof NodoLeer)
 				System.out.println("Lectura: " + ((NodoLeer) raiz).getIdentificador());
@@ -114,6 +116,9 @@ public class Util {
 			System.out.println("ID, nombre= " + ((NodoIdentificador) raiz).getNombre());
 		}
 
+		if (raiz instanceof NodoArray) {
+			System.out.println("Array, nombre= " + ((NodoArray) raiz).getId());
+		}
 	}
 
 }
