@@ -40,8 +40,10 @@ public class TablaSimbolos {
 
 				cargarTabla(((NodoRepeat) raiz).getPrueba());
 
-			} else if (raiz instanceof NodoAsignacion)
+			} else if (raiz instanceof NodoAsignacion) {
+				InsertarSimbolo(((NodoAsignacion) raiz).getIdentificador(), -1);
 				cargarTabla(((NodoAsignacion) raiz).getExpresion());
+			}
 
 			else if (raiz instanceof NodoEscribir)
 				cargarTabla(((NodoEscribir) raiz).getExpresion());
