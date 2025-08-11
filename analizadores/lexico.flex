@@ -78,6 +78,12 @@ espacio		= [ \t]+
 "var"         {	if(debug) System.out.println("token var");
 			return sf.newSymbol("var",sym.VAR);}
 
+"fun"         {	if(debug) System.out.println("token fun");
+			return sf.newSymbol("fun",sym.FUN);}
+
+"return"         {	if(debug) System.out.println("token return");
+			return sf.newSymbol("return",sym.RETURN);}
+
 "<="             {	if(debug) System.out.println("token LE");
 			return sf.newSymbol("LE",sym.LE);}
 
@@ -125,6 +131,9 @@ espacio		= [ \t]+
 
 ";"             {	if(debug) System.out.println("token SEMI");
 			return sf.newSymbol("SEMI",sym.SEMI);}
+
+","             {	if(debug) System.out.println("token Coma");
+			return sf.newSymbol("Coma",sym.COMA);}
 
 {numero}        {	if(debug) System.out.println("token NUM");
 			return sf.newSymbol("NUM",sym.NUM,new String(yytext()));}

@@ -43,6 +43,9 @@ terminal LBRACKET;
 terminal RBRACKET;
 terminal SEMI;
 terminal VAR;
+terminal COMA;
+terminal FUN;
+terminal RETURN;
 
 
 /* Simbolos No Terminales */
@@ -60,6 +63,11 @@ non terminal NodoBase term;
 non terminal NodoBase factor;
 non terminal NodoBase Array;
 non terminal NodoBase Identificador;
+non terminal NodoBase Variable;
+non terminal NodoBase Fun_Call;
+non terminal NodoBase Fun_Decla;
+non terminal NodoBase Fun_Params;
+
 
 /* Precedencia de operadores */
 precedence left PLUS;
@@ -132,16 +140,16 @@ repeat_stmt ::= REPEAT stmt_seq:cuerpo UNTIL exp:prueba	{: if(debug) System.out.
 							:}
 		;
 
-assign_stmt ::= Identificador:variable 	{: if(debug) System.out.println("\t regla 6 parte del medio"); 
+assign_stmt ::= Variable:var 	{: if(debug) System.out.println("\t regla 6 parte del medio"); 
 				/*lineanum=1000; //Pasar/Obtener la linea correcta por el Simbolo
-				String nombre = variable.getName();*/
+				String nombre = var.getName();*/
 				:}
 			ASSIGN exp:ex	{: if(debug) System.out.println("\t regla 6 parte final");
-					if(variable!=null){
-						if(variable instanceof NodoIdentificador)
-							RESULT = new NodoAsignacion(((NodoIdentificador) variable).getNombre(),ex);
-						if(variable instanceof NodoArray)
-							RESULT = new NodoAsignacion_Array(((NodoArray) variable).getId(), ex, ((NodoArray) variable).getArg());
+					if(var!=null){
+						if(var instanceof NodoIdentificador)
+							RESULT = new NodoAsignacion(((NodoIdentificador) var).getNombre(),ex);
+						if(var instanceof NodoArray)
+							RESULT = new NodoAsignacion_Array(((NodoArray) var).getId(), ex, ((NodoArray) var).getArg());
 					}
 					else{
 					RESULT = null;
@@ -151,10 +159,10 @@ assign_stmt ::= Identificador:variable 	{: if(debug) System.out.println("\t regl
 			;
 
 
-read_stmt   ::= READ ID:variable	{: if(debug) System.out.println("\t regla 7");
-					System.out.println("Leyendo Variable");
-					if(variable!=null)
-					RESULT = new NodoLeer(variable.toString());
+read_stmt   ::= READ ID:var	{: if(debug) System.out.println("\t regla 7");
+					System.out.println("Leyendo var");
+					if(var!=null)
+					RESULT = new NodoLeer(var.toString());
 					else{
 					RESULT = null;
 					System.out.println("Ocurrio error en cup # 0002");
@@ -240,7 +248,7 @@ Array ::= ID:id LBRACKET simple_exp:ex RBRACKET	{:
 					:}
 		;
 
-Identificador ::= 	ID:variable	{: if(debug) System.out.println("\t regla 12c"); 
+Variable ::= 	ID:variable	{: if(debug) System.out.println("\t regla 12c"); 
 					if(variable!=null){
 						System.out.println("Construyendo Nodo ID para Lexema: "+ variable.toString());
 						RESULT= new NodoIdentificador(variable.toString());		
@@ -259,3 +267,11 @@ Identificador ::= 	ID:variable	{: if(debug) System.out.println("\t regla 12c");
 					}
 					:}
 					;
+
+Identificador ::= Variable:var {:RESULT = var; :} | Fun_Call ;
+
+Fun_Params ::= Fun_Params COMA simple_exp | simple_exp;
+
+Fun_Decla ::= FUN ID LPAREN Fun_Params RPAREN stmt_seq END ;
+
+Fun_Call ::= ID LPAREN Fun_Params RPAREN ;

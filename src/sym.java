@@ -16,6 +16,7 @@ public class sym {
   public static final int RPAREN = 24;
   public static final int THEN = 3;
   public static final int SEMI = 27;
+  public static final int RETURN = 31;
   public static final int END = 5;
   public static final int IF = 2;
   public static final int LBRACKET = 25;
@@ -26,6 +27,7 @@ public class sym {
   public static final int ID = 10;
   public static final int RBRACKET = 26;
   public static final int NUM = 11;
+  public static final int COMA = 29;
   public static final int EOF = 0;
   public static final int MINUS = 20;
   public static final int GE = 16;
@@ -35,6 +37,7 @@ public class sym {
   public static final int EQ = 13;
   public static final int REPEAT = 6;
   public static final int VAR = 28;
+  public static final int FUN = 30;
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
@@ -64,7 +67,10 @@ public class sym {
   "LBRACKET",
   "RBRACKET",
   "SEMI",
-  "VAR"
+  "VAR",
+  "COMA",
+  "FUN",
+  "RETURN"
   };
 }
 
