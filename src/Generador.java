@@ -76,6 +76,7 @@ public class Generador {
 				generarAccesoArray(nodo);
 			} else if (nodo instanceof NodoAsignacion_Array) {
 				generarAsignacionArray(nodo);
+			} else if (nodo instanceof NodoArrayDeclarar) {
 			} else {
 				UtGen.emitirComentario("BUG: Tipo de nodo a generar desconocido");
 			}

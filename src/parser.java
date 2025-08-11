@@ -524,7 +524,7 @@ class CUP$parser$actions {
 		 if(debug) System.out.println("\t regla 6 parte final");
 					if(variable!=null){
 						if(variable instanceof NodoIdentificador)
-							RESULT = new NodoAsignacion(variable.toString(),ex);
+							RESULT = new NodoAsignacion(((NodoIdentificador) variable).getNombre(),ex);
 						if(variable instanceof NodoArray)
 							RESULT = new NodoAsignacion_Array(((NodoArray) variable).getId(), ex, ((NodoArray) variable).getArg());
 					}
