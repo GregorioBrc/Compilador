@@ -63,6 +63,9 @@ espacio		= [ \t]+
 "end"           {	if(debug) System.out.println("token END");
 			return sf.newSymbol("END",sym.END);}
 
+"endf"           {	if(debug) System.out.println("token ENDf");
+			return sf.newSymbol("ENDF",sym.ENDF);}
+
 "repeat"        {	if(debug) System.out.println("token REPEAT");
 			return sf.newSymbol("REPEAT",sym.REPEAT);}
 

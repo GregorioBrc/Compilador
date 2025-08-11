@@ -8,6 +8,7 @@ public class sym {
   /* terminals */
   public static final int TIMES = 21;
   public static final int READ = 8;
+  public static final int ENDF = 32;
   public static final int OVER = 22;
   public static final int NE = 18;
   public static final int LT = 14;
@@ -70,7 +71,8 @@ public class sym {
   "VAR",
   "COMA",
   "FUN",
-  "RETURN"
+  "RETURN",
+  "ENDF"
   };
 }
 

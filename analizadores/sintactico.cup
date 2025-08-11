@@ -46,6 +46,7 @@ terminal VAR;
 terminal COMA;
 terminal FUN;
 terminal RETURN;
+terminal ENDF;
 
 
 /* Simbolos No Terminales */
@@ -271,13 +272,28 @@ Identificador ::= 	ID:variable	{: if(debug) System.out.println("\t regla 12c");
 					:}
 					;
 
-Fun_Params_Call ::= Fun_Params_Call COMA simple_exp | simple_exp | ;
+Fun_Params_Call ::= Fun_Params_Call:Par_Ant COMA simple_exp:ex {: if(debug) System.out.println("\t Parametros");
+						RESULT = new NodoParametros(ex,Par_Ant);
+							:}
+					| simple_exp:ex {: if(debug) System.out.println("\t Parametro"); 
+						RESULT = new NodoParametros(ex,null);:}
+					| {: if(debug) System.out.println("\t Sin Parametros"); 
+						RESULT = null;:};
 
-Fun_Params_Decla ::= Fun_Params_Decla COMA ID | ID | ;
+Fun_Params_Decla ::= Fun_Params_Decla:id_ant COMA ID:id {:RESULT = new NodoParametros(id,id_ant);:}
+					| ID:id {:RESULT = new NodoParametros(id,null);:}
+					| {:RESULT = null;:};
 
-Fun_Decla ::= FUN ID LPAREN Fun_Params_Decla RPAREN stmt_seq END {:System.out.println("Declarar Funcion void");:}
-			| FUN ID LPAREN Fun_Params_Decla RPAREN stmt_seq RETURN simple_exp END {:System.out.println("Declarar Funcion return");:}
+Fun_Decla ::= FUN ID:id LPAREN Fun_Params_Decla:params RPAREN stmt_seq:body ENDF {:System.out.println("Declarar Funcion void");
+					RESULT = new NodoFuncionDecl(id,(NodoParametros)params,body,null);
+					:}
+
+			| FUN ID:id LPAREN Fun_Params_Decla:params RPAREN stmt_seq:body RETURN simple_exp:exp ENDF {:System.out.println("Declarar Funcion return");
+					RESULT = new NodoFuncionDecl(id, (NodoParametros)params, body, new NodoReturn(exp));
+					:}
 			;
 
-Fun_Call ::= ID LPAREN Fun_Params_Call RPAREN {:System.out.println("llamada Funcion");:}
+Fun_Call ::= ID:id LPAREN Fun_Params_Call:Params RPAREN {:System.out.println("llamada Funcion");
+			RESULT = new NodoLlamada(id,(NodoParametros)Params);
+		:}
 		;
