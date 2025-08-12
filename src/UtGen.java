@@ -36,7 +36,7 @@ public class UtGen {
 	 * al inicio de la memoria para el almacenamiento de variables globales
 	 */
 	public static int GP = 5;
-
+	
 	/* Defino al registro[0] como el acumulador 1 */
 	public static int AC = 0;
 

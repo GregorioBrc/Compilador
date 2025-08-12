@@ -1,4 +1,5 @@
 
+import Registros.RegistroFuncion;
 import nodosAST.*;
 
 public class Generador {
@@ -56,6 +57,10 @@ public class Generador {
 	// prerequisito: Fijar la tabla de simbolos antes de generar el codigo objeto
 	private static void generar(NodoBase nodo) {
 		if (tablaSimbolos != null) {
+			if(nodo == null) {
+				return;
+			}
+
 			if (nodo instanceof NodoIf) {
 				generarIf(nodo);
 			} else if (nodo instanceof NodoRepeat) {
@@ -77,6 +82,14 @@ public class Generador {
 			} else if (nodo instanceof NodoAsignacion_Array) {
 				generarAsignacionArray(nodo);
 			} else if (nodo instanceof NodoArrayDeclarar) {
+			} else if (nodo instanceof NodoFuncionDecl) {
+				generarDeclaracionFuncion(nodo);
+			} else if (nodo instanceof NodoParametros) {
+				generarParams_CallFun(nodo);
+			} else if (nodo instanceof NodoReturn) {
+				GenerarRetornoFun(nodo);
+			} else if (nodo instanceof NodoLlamada) {
+				GenerarLLamadaFun(nodo);
 			} else {
 				UtGen.emitirComentario("BUG: Tipo de nodo a generar desconocido");
 			}
@@ -307,6 +320,91 @@ public class Generador {
 		UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP, "Cargar Indice");
 
 		UtGen.emitirRM("LD", UtGen.AC, dir_base, UtGen.AC1, "Cargar Valor Array");
+	}
+
+	private static void generarDeclaracionFuncion(NodoBase nodo) {
+		NodoFuncionDecl n = (NodoFuncionDecl) nodo;
+		if (UtGen.debug)
+			UtGen.emitirComentario("-> Funcion: " + n.getNombre());
+
+		tablaSimbolos.EntrarAmbito(n.getNombre());
+		int dir_base = tablaSimbolos.getDireccion(n.getNombre());
+		int Cant_Para = NodoParametros.NumParametros(n.getParametros());
+
+		((RegistroFuncion) tablaSimbolos.BuscarSimbolo(n.getNombre())).setIni_Instruc(UtGen.emitirSalto(0));
+
+		int Salto = UtGen.emitirSalto(1);
+
+		for (int i = 1; i <= Cant_Para; i++) {
+			UtGen.emitirRM("LD", UtGen.AC, ++desplazamientoTmp, UtGen.MP,
+					"Funcion: Cargar el parametro " + i + " desde la pila temporal");
+
+			UtGen.emitirRM("ST", UtGen.AC, dir_base + Cant_Para - i, UtGen.GP,
+					"Funcion: Almaceno el parametro " + i + " en la direccion base de la funcion");
+		}
+
+		if (UtGen.debug)
+			UtGen.emitirComentario("-> Cuerpo de la funcion: " + n.getNombre());
+		generar(n.getCuerpo());
+
+		if (UtGen.debug)
+			UtGen.emitirComentario("-> Valor de retorno de la funcion: " + n.getNombre());
+		generar(n.getValorRetorno());
+
+		int Local_Act = UtGen.emitirSalto(0);
+		UtGen.cargarRespaldo(Salto);
+		UtGen.emitirRM_Abs("JNE", UtGen.PC, Local_Act, "Funcion: Salto hacia el final de la funcion");
+		UtGen.restaurarRespaldo();
+		
+		//Cargar Direccion retorno de pila a Ac
+		UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP,
+				"Funcion: Cargar Direccion de retorno de la pila temporal");
+
+		UtGen.emitirRM("JNE", UtGen.PC, 1, UtGen.AC1, "Salto hacia la direccion de retorno de la funcion");
+
+		tablaSimbolos.SalirAmbito(n.getNombre(), true);
+	}
+
+	private static void generarParams_CallFun(NodoBase params) {
+		if (UtGen.debug)
+			UtGen.emitirComentario("-> Parametros");
+		if (params.TieneHermano()) {
+			return;
+		} else {
+			generar(((NodoParametros) params).getContent());
+			
+			UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP,
+					"op: push Parametro: " + ((NodoParametros) params).getContent().toString());
+
+			generarParams_CallFun(params.getHermanoDerecha());
+		}
+	}
+
+	private static void GenerarRetornoFun(NodoBase nodo) {
+		NodoReturn n = (NodoReturn) nodo;
+		if (UtGen.debug)
+			UtGen.emitirComentario("-> Retorno Funcion");
+
+		if (n.getExpresion() != null) {
+			generar(n.getExpresion());
+		} else {
+			UtGen.emitirRM("LDC", UtGen.AC, 0, UtGen.AC, "Retorno: No hay valor de retorno, uso 0");
+		}
+	}
+
+	private static void GenerarLLamadaFun(NodoBase nodo) {
+		NodoLlamada n = (NodoLlamada) nodo;
+		if (UtGen.debug)
+			UtGen.emitirComentario("-> Llamada Funcion: " + n.getNombre());
+
+		int SaltoFun = ((RegistroFuncion) tablaSimbolos.BuscarSimbolo(n.getNombre())).getIni_Instruc();
+		
+		UtGen.emitirRM("ST", UtGen.PC, desplazamientoTmp--, UtGen.MP,
+				"op: push Direccion de retorno de la funcion: " + n.getNombre());
+
+		generar(n.getArg());
+		
+		UtGen.emitirRM_Abs("JNE", UtGen.PC, SaltoFun, "Llamada Funcion: Salto hacia la funcion " + n.getNombre());
 	}
 
 	// TODO: enviar preludio a archivo de salida, obtener antes su nombre

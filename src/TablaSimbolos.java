@@ -12,6 +12,7 @@ public class TablaSimbolos {
 	private Stack<HashMap<String, RegistroSimbolo>> pilaTablas;
 	private int direccion; // Contador de las localidades de memoria asignadas a la tabla
 	private Stack<Integer> save_direccion;
+	private final int Size_Funcion = 10; // Tamao reservado para una funcion
 
 	public TablaSimbolos() {
 		super();
@@ -149,19 +150,18 @@ public class TablaSimbolos {
 		return BuscarSimbolo(Clave).getDireccionMemoria();
 	}
 
-	public void EntrarAmbito(HashMap<String, RegistroSimbolo> Tb) {
-		if (Tb == null) {
+	public void EntrarAmbito(String Nom_Ambito) {
+		if (Nom_Ambito == null) {
 			tabla = new HashMap<String, RegistroSimbolo>();
-		}
-		else {
-			tabla = Tb;
+		} else {
+			tabla = ((RegistroFuncion) BuscarSimbolo(Nom_Ambito)).getSimbolos();
 		}
 		pilaTablas.push(tabla);
 		save_direccion.push(direccion);
-		direccion = 0;
+		direccion -= Size_Funcion;
 	}
 
-	public void SalirAmbito(String name) {
+	private void SalirAmbito(String name) {
 		HashMap<String, RegistroSimbolo> ax;
 
 		if (!pilaTablas.isEmpty()) {
@@ -173,6 +173,17 @@ public class TablaSimbolos {
 				tabla = new HashMap<String, RegistroSimbolo>();
 			}
 			direccion = save_direccion.pop(); // Recupero la direccion de memoria del ambito anterior
+		}
+	}
+
+	public void SalirAmbito(String name, boolean a) {
+		if (!pilaTablas.isEmpty()) {
+			pilaTablas.pop();
+			if (!pilaTablas.isEmpty()) {
+				tabla = pilaTablas.peek();
+			} else {
+				tabla = new HashMap<String, RegistroSimbolo>();
+			}
 		}
 	}
 
@@ -196,9 +207,28 @@ public class TablaSimbolos {
 		} else {
 			simbolo = new RegistroFuncion(raiz.getNombre(), -1, direccion,
 					NodoParametros.NumParametros(raiz.getParametros()));
-			direccion += 10;
+			direccion += Size_Funcion;
 			tabla.put(raiz.getNombre(), simbolo);
 			return true;
 		}
 	}
+
+	public HashMap<String, RegistroSimbolo> getTabla() {
+		return tabla;
+	}
+
+	public RegistroFuncion getRegistroFuncion(String nombre) {
+		
+		if (pilaTablas.size() < 1) {
+			throw new RuntimeException("Error: No es el ambito de una funcion.");
+		}
+		
+		RegistroSimbolo rs = BuscarSimbolo(nombre);
+		if (rs instanceof RegistroFuncion) {
+			return (RegistroFuncion) rs;
+		} else {
+			throw new RuntimeException("Error: El simbolo " + nombre + " no es una funcion.");
+		}
+	}
+
 }
