@@ -1,3 +1,4 @@
+package Registros;
 public class RegistroArray extends RegistroSimbolo {
     private int tamano;
 

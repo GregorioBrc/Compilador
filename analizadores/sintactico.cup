@@ -43,6 +43,10 @@ terminal LBRACKET;
 terminal RBRACKET;
 terminal SEMI;
 terminal VAR;
+terminal COMA;
+terminal FUN;
+terminal RETURN;
+terminal ENDF;
 
 
 /* Simbolos No Terminales */
@@ -60,6 +64,11 @@ non terminal NodoBase term;
 non terminal NodoBase factor;
 non terminal NodoBase Array;
 non terminal NodoBase Identificador;
+non terminal NodoBase Fun_Call;
+non terminal NodoBase Fun_Decla;
+non terminal NodoBase Fun_Params_Decla;
+non terminal NodoBase Fun_Params_Call;
+
 
 /* Precedencia de operadores */
 precedence left PLUS;
@@ -86,7 +95,7 @@ stmt_seq    ::= stmt_seq:ini SEMI stmt:sent	{: if(debug) System.out.println("\t 
 						}
 						:}
             | stmt:sent	{: if(debug) System.out.println("\t regla 2b"); 
-				RESULT=sent;				
+				RESULT=sent;
 				:}
 		;
 
@@ -113,7 +122,14 @@ stmt        ::= if_stmt:sif	{: if(debug) System.out.println("\t regla 3a");
 					RESULT = new NodoArrayDeclarar((NodoArray)arr);
 
 					:}
-            | error	{: if(debug) System.out.println("\t regla 3g"); 
+
+			| Fun_Decla:decla {:if(debug) System.out.println("\t regla 3g, declarar Funcion");
+							RESULT = decla;:}
+			
+			| Fun_Call:call {:if(debug) System.out.println("\t regla 3h, llamar Funcion");
+							RESULT = call;:}
+
+            | error	{: if(debug) System.out.println("\t regla 3z"); 
 				System.out.println("Ocurrio error en cup # 0004 C");
 				RESULT=null;
 				:}
@@ -132,16 +148,12 @@ repeat_stmt ::= REPEAT stmt_seq:cuerpo UNTIL exp:prueba	{: if(debug) System.out.
 							:}
 		;
 
-assign_stmt ::= Identificador:variable 	{: if(debug) System.out.println("\t regla 6 parte del medio"); 
-				/*lineanum=1000; //Pasar/Obtener la linea correcta por el Simbolo
-				String nombre = variable.getName();*/
-				:}
-			ASSIGN exp:ex	{: if(debug) System.out.println("\t regla 6 parte final");
-					if(variable!=null){
-						if(variable instanceof NodoIdentificador)
-							RESULT = new NodoAsignacion(((NodoIdentificador) variable).getNombre(),ex);
-						if(variable instanceof NodoArray)
-							RESULT = new NodoAsignacion_Array(((NodoArray) variable).getId(), ex, ((NodoArray) variable).getArg());
+assign_stmt ::= Identificador:var ASSIGN exp:ex	{: if(debug) System.out.println("\t regla 6 parte final");
+					if(var!=null){
+						if(var instanceof NodoIdentificador)
+							RESULT = new NodoAsignacion(((NodoIdentificador) var).getNombre(),ex);
+						if(var instanceof NodoArray)
+							RESULT = new NodoAsignacion_Array(((NodoArray) var).getId(), ex, ((NodoArray) var).getArg());
 					}
 					else{
 					RESULT = null;
@@ -151,10 +163,10 @@ assign_stmt ::= Identificador:variable 	{: if(debug) System.out.println("\t regl
 			;
 
 
-read_stmt   ::= READ ID:variable	{: if(debug) System.out.println("\t regla 7");
-					System.out.println("Leyendo Variable");
-					if(variable!=null)
-					RESULT = new NodoLeer(variable.toString());
+read_stmt   ::= READ ID:var	{: if(debug) System.out.println("\t regla 7");
+					System.out.println("Leyendo var");
+					if(var!=null)
+					RESULT = new NodoLeer(var.toString());
 					else{
 					RESULT = null;
 					System.out.println("Ocurrio error en cup # 0002");
@@ -226,6 +238,9 @@ factor      ::= LPAREN exp:ex RPAREN	{: if(debug) System.out.println("\t regla 1
 					:}
 		| Identificador: Id {:RESULT = Id;:}
 
+		| Fun_Call:Fn {:System.out.println("Llamado valor Funcion");
+						RESULT = Fn;:}
+
 		| error	{: if(debug) System.out.println("\t regla 12e"); 
 				System.out.println("Ocurrio error en cup # 0003");
 				RESULT=null;
@@ -259,3 +274,29 @@ Identificador ::= 	ID:variable	{: if(debug) System.out.println("\t regla 12c");
 					}
 					:}
 					;
+
+Fun_Params_Call ::= Fun_Params_Call:Par_Ant COMA simple_exp:ex {: if(debug) System.out.println("\t Parametros");
+						RESULT = new NodoParametros(ex,Par_Ant);
+							:}
+					| simple_exp:ex {: if(debug) System.out.println("\t Parametro"); 
+						RESULT = new NodoParametros(ex,null);:}
+					| {: if(debug) System.out.println("\t Sin Parametros"); 
+						RESULT = null;:};
+
+Fun_Params_Decla ::= Fun_Params_Decla:id_ant COMA ID:id {:RESULT = new NodoParametros(id,id_ant);:}
+					| ID:id {:RESULT = new NodoParametros(id,null);:}
+					| {:RESULT = null;:};
+
+Fun_Decla ::= FUN ID:id LPAREN Fun_Params_Decla:params RPAREN stmt_seq:body ENDF {:System.out.println("Declarar Funcion void");
+					RESULT = new NodoFuncionDecl(id,(NodoParametros)params,body,null);
+					:}
+
+			| FUN ID:id LPAREN Fun_Params_Decla:params RPAREN stmt_seq:body RETURN simple_exp:exp ENDF {:System.out.println("Declarar Funcion return");
+					RESULT = new NodoFuncionDecl(id, (NodoParametros)params, body, new NodoReturn(exp));
+					:}
+			;
+
+Fun_Call ::= ID:id LPAREN Fun_Params_Call:Params RPAREN {:System.out.println("llamada Funcion");
+			RESULT = new NodoLlamada(id,(NodoParametros)Params);
+		:}
+		;

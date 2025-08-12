@@ -1,3 +1,4 @@
+package Registros;
 public class RegistroSimbolo {
 	private String identificador;
 	private int NumLinea;

@@ -3,13 +3,23 @@ import nodosAST.*;
 
 import java.util.*;
 
+import Registros.RegistroArray;
+import Registros.RegistroFuncion;
+import Registros.RegistroSimbolo;
+
 public class TablaSimbolos {
 	private HashMap<String, RegistroSimbolo> tabla;
+	private Stack<HashMap<String, RegistroSimbolo>> pilaTablas;
 	private int direccion; // Contador de las localidades de memoria asignadas a la tabla
+	private Stack<Integer> save_direccion;
+	private final int Size_Funcion = 10; // Tamao reservado para una funcion
 
 	public TablaSimbolos() {
 		super();
 		tabla = new HashMap<String, RegistroSimbolo>();
+		pilaTablas = new Stack<HashMap<String, RegistroSimbolo>>();
+		pilaTablas.push(tabla);
+		save_direccion = new Stack<Integer>();
 		direccion = 0;
 	}
 
@@ -23,6 +33,32 @@ public class TablaSimbolos {
 				} else {
 					InsertarSimbolo_Array(((NodoArrayDeclarar) raiz).getNd(), -1);
 				}
+			}
+
+			if (raiz instanceof NodoFuncionDecl) {
+				if (pilaTablas.size() > 1) {
+					throw new RuntimeException("Error: No se pueden declarar funciones dentro de funciones.");
+				}
+
+				if (InsertarSimboloFuncion((NodoFuncionDecl) raiz)) {
+					EntrarAmbito(null);
+					cargarTabla(((NodoFuncionDecl) raiz).getParametros());
+					cargarTabla(((NodoFuncionDecl) raiz).getCuerpo());
+					cargarTabla(((NodoFuncionDecl) raiz).getValorRetorno());
+					SalirAmbito(((NodoFuncionDecl) raiz).getNombre());
+				}
+			}
+
+			if (raiz instanceof NodoLlamada) {
+				ComprobarLlamada((NodoLlamada) raiz);
+			}
+
+			if (raiz instanceof NodoParametros) {
+				cargarTabla(((NodoParametros) raiz).getContent());
+			}
+
+			if (raiz instanceof NodoReturn) {
+				cargarTabla(((NodoReturn) raiz).getExpresion());
 			}
 
 			/* Hago el recorrido recursivo */
@@ -83,8 +119,18 @@ public class TablaSimbolos {
 	}
 
 	public RegistroSimbolo BuscarSimbolo(String identificador) {
-		RegistroSimbolo simbolo = (RegistroSimbolo) tabla.get(identificador);
-		return simbolo;
+		RegistroSimbolo simbolo;
+		for (int i = pilaTablas.size() - 1; i >= 0; i--) {
+			simbolo = pilaTablas.get(i).get(identificador);
+			if (simbolo != null) {
+				return simbolo;
+			} else {
+				continue;
+			}
+		}
+
+		throw new RuntimeException("Error: El simbolo " + identificador + " no ha sido declarado.");
+
 	}
 
 	public void ImprimirClaves() {
@@ -95,7 +141,94 @@ public class TablaSimbolos {
 		}
 	}
 
+	// public RegistroSimbolo BuscarSimbolo(String identificador) {
+	// RegistroSimbolo simbolo = (RegistroSimbolo) tabla.get(identificador);
+	// return simbolo;
+	// }
+
 	public int getDireccion(String Clave) {
 		return BuscarSimbolo(Clave).getDireccionMemoria();
 	}
+
+	public void EntrarAmbito(String Nom_Ambito) {
+		if (Nom_Ambito == null) {
+			tabla = new HashMap<String, RegistroSimbolo>();
+		} else {
+			tabla = ((RegistroFuncion) BuscarSimbolo(Nom_Ambito)).getSimbolos();
+		}
+		pilaTablas.push(tabla);
+		save_direccion.push(direccion);
+		direccion -= Size_Funcion;
+	}
+
+	private void SalirAmbito(String name) {
+		HashMap<String, RegistroSimbolo> ax;
+
+		if (!pilaTablas.isEmpty()) {
+			ax = pilaTablas.pop();
+			if (!pilaTablas.isEmpty()) {
+				tabla = pilaTablas.peek();
+				((RegistroFuncion) tabla.get(name)).setSimbolos(ax);
+			} else {
+				tabla = new HashMap<String, RegistroSimbolo>();
+			}
+			direccion = save_direccion.pop(); // Recupero la direccion de memoria del ambito anterior
+		}
+	}
+
+	public void SalirAmbito(String name, boolean a) {
+		if (!pilaTablas.isEmpty()) {
+			pilaTablas.pop();
+			if (!pilaTablas.isEmpty()) {
+				tabla = pilaTablas.peek();
+			} else {
+				tabla = new HashMap<String, RegistroSimbolo>();
+			}
+		}
+	}
+
+	private void ComprobarLlamada(NodoLlamada raiz) {
+		RegistroFuncion simbolo = (RegistroFuncion) BuscarSimbolo(raiz.getNombre());
+
+		if (simbolo == null) {
+			throw new RuntimeException("Error: La funcion " + raiz.getNombre() + " no ha sido declarada.");
+		}
+
+		if (simbolo.getNumParametros() != NodoParametros.NumParametros(raiz.getArg())) {
+			throw new RuntimeException("Error: La funcion " + raiz.getNombre() + " espera " + simbolo.getNumParametros()
+					+ " parametros");
+		}
+	}
+
+	private boolean InsertarSimboloFuncion(NodoFuncionDecl raiz) {
+		RegistroFuncion simbolo;
+		if (tabla.containsKey(raiz.getNombre())) {
+			return false;
+		} else {
+			simbolo = new RegistroFuncion(raiz.getNombre(), -1, direccion,
+					NodoParametros.NumParametros(raiz.getParametros()));
+			direccion += Size_Funcion;
+			tabla.put(raiz.getNombre(), simbolo);
+			return true;
+		}
+	}
+
+	public HashMap<String, RegistroSimbolo> getTabla() {
+		return tabla;
+	}
+
+	public RegistroFuncion getRegistroFuncion(String nombre) {
+		
+		if (pilaTablas.size() < 1) {
+			throw new RuntimeException("Error: No es el ambito de una funcion.");
+		}
+		
+		RegistroSimbolo rs = BuscarSimbolo(nombre);
+		if (rs instanceof RegistroFuncion) {
+			return (RegistroFuncion) rs;
+		} else {
+			throw new RuntimeException("Error: El simbolo " + nombre + " no es una funcion.");
+		}
+	}
+
 }
