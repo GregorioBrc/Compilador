@@ -35,6 +35,10 @@ public class TablaSimbolos {
 			}
 
 			if (raiz instanceof NodoFuncionDecl) {
+				if (pilaTablas.size() > 1) {
+					throw new RuntimeException("Error: No se pueden declarar funciones dentro de funciones.");
+				}
+
 				if (InsertarSimboloFuncion((NodoFuncionDecl) raiz)) {
 					EntrarAmbito(null);
 					cargarTabla(((NodoFuncionDecl) raiz).getParametros());
