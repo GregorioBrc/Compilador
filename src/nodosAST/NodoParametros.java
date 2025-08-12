@@ -30,11 +30,11 @@ public class NodoParametros extends NodoBase {
         return getHermanoDerecha();
     }
 
-    public static int NumParametros(NodoParametros parametros) {
+    public static int NumParametros(NodoBase parametros) {
         if (parametros == null) {
             return 0;
         } else {
-            return 1 + NumParametros((NodoParametros)parametros.getOtroParam());
+            return 1 + NumParametros(parametros.getHermanoDerecha());
         }
     }
 

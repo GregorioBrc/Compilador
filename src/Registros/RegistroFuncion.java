@@ -1,4 +1,4 @@
-package Resgistros;
+package Registros;
 
 import java.util.HashMap;
 
