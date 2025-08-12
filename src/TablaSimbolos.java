@@ -36,7 +36,7 @@ public class TablaSimbolos {
 
 			if (raiz instanceof NodoFuncionDecl) {
 				if (InsertarSimboloFuncion((NodoFuncionDecl) raiz)) {
-					EntrarAmbito();
+					EntrarAmbito(null);
 					cargarTabla(((NodoFuncionDecl) raiz).getParametros());
 					cargarTabla(((NodoFuncionDecl) raiz).getCuerpo());
 					cargarTabla(((NodoFuncionDecl) raiz).getValorRetorno());
@@ -115,15 +115,17 @@ public class TablaSimbolos {
 
 	public RegistroSimbolo BuscarSimbolo(String identificador) {
 		RegistroSimbolo simbolo;
-		for (HashMap<String, RegistroSimbolo> hashMap : pilaTablas) {
-			simbolo = hashMap.get(identificador);
+		for (int i = pilaTablas.size() - 1; i >= 0; i--) {
+			simbolo = pilaTablas.get(i).get(identificador);
 			if (simbolo != null) {
 				return simbolo;
 			} else {
 				continue;
 			}
 		}
-		return null;
+
+		throw new RuntimeException("Error: El simbolo " + identificador + " no ha sido declarado.");
+
 	}
 
 	public void ImprimirClaves() {
@@ -143,11 +145,16 @@ public class TablaSimbolos {
 		return BuscarSimbolo(Clave).getDireccionMemoria();
 	}
 
-	public void EntrarAmbito() {
-		tabla = new HashMap<String, RegistroSimbolo>();
+	public void EntrarAmbito(HashMap<String, RegistroSimbolo> Tb) {
+		if (Tb == null) {
+			tabla = new HashMap<String, RegistroSimbolo>();
+		}
+		else {
+			tabla = Tb;
+		}
 		pilaTablas.push(tabla);
 		save_direccion.push(direccion);
-		direccion = 0; // Reinicio el contador de direcciones para el nuevo amb
+		direccion = 0;
 	}
 
 	public void SalirAmbito(String name) {
