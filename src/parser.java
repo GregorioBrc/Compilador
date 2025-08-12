@@ -493,7 +493,8 @@ class CUP$parser$actions {
 		int declaleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int declaright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		NodoBase decla = (NodoBase)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		if(debug) System.out.println("\t regla 3f, declarar Funcion");
+		if(debug) System.out.println("\t regla 3g, declarar Funcion");
+							RESULT = decla;
               CUP$parser$result = parser.getSymbolFactory().newSymbol("stmt",2, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -505,7 +506,8 @@ class CUP$parser$actions {
 		int callleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int callright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		NodoBase call = (NodoBase)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		if(debug) System.out.println("\t regla 3f, llamar Funcion");
+		if(debug) System.out.println("\t regla 3h, llamar Funcion");
+							RESULT = call;
               CUP$parser$result = parser.getSymbolFactory().newSymbol("stmt",2, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -514,7 +516,7 @@ class CUP$parser$actions {
           case 12: // stmt ::= error 
             {
               NodoBase RESULT =null;
-		 if(debug) System.out.println("\t regla 3g"); 
+		 if(debug) System.out.println("\t regla 3z"); 
 				System.out.println("Ocurrio error en cup # 0004 C");
 				RESULT=null;
 				
@@ -891,7 +893,11 @@ class CUP$parser$actions {
           case 35: // factor ::= Fun_Call 
             {
               NodoBase RESULT =null;
+		int Fnleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
+		int Fnright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
+		NodoBase Fn = (NodoBase)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		System.out.println("Llamado valor Funcion");
+						RESULT = Fn;
               CUP$parser$result = parser.getSymbolFactory().newSymbol("factor",11, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;

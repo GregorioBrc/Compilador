@@ -123,11 +123,13 @@ stmt        ::= if_stmt:sif	{: if(debug) System.out.println("\t regla 3a");
 
 					:}
 
-			| Fun_Decla:decla {:if(debug) System.out.println("\t regla 3f, declarar Funcion");:}
+			| Fun_Decla:decla {:if(debug) System.out.println("\t regla 3g, declarar Funcion");
+							RESULT = decla;:}
 			
-			| Fun_Call:call {:if(debug) System.out.println("\t regla 3f, llamar Funcion");:}
+			| Fun_Call:call {:if(debug) System.out.println("\t regla 3h, llamar Funcion");
+							RESULT = call;:}
 
-            | error	{: if(debug) System.out.println("\t regla 3g"); 
+            | error	{: if(debug) System.out.println("\t regla 3z"); 
 				System.out.println("Ocurrio error en cup # 0004 C");
 				RESULT=null;
 				:}
@@ -236,7 +238,8 @@ factor      ::= LPAREN exp:ex RPAREN	{: if(debug) System.out.println("\t regla 1
 					:}
 		| Identificador: Id {:RESULT = Id;:}
 
-		| Fun_Call {:System.out.println("Llamado valor Funcion");:}
+		| Fun_Call:Fn {:System.out.println("Llamado valor Funcion");
+						RESULT = Fn;:}
 
 		| error	{: if(debug) System.out.println("\t regla 12e"); 
 				System.out.println("Ocurrio error en cup # 0003");

@@ -3,13 +3,20 @@ import nodosAST.*;
 
 import java.util.*;
 
+import Resgistros.RegistroArray;
+import Resgistros.RegistroFuncion;
+import Resgistros.RegistroSimbolo;
+
 public class TablaSimbolos {
 	private HashMap<String, RegistroSimbolo> tabla;
+	private Stack<HashMap<String, RegistroSimbolo>> pilaTablas;
 	private int direccion; // Contador de las localidades de memoria asignadas a la tabla
 
 	public TablaSimbolos() {
 		super();
 		tabla = new HashMap<String, RegistroSimbolo>();
+		pilaTablas = new Stack<HashMap<String, RegistroSimbolo>>();
+		pilaTablas.push(tabla);
 		direccion = 0;
 	}
 
@@ -22,6 +29,16 @@ public class TablaSimbolos {
 					InsertarSimbolo_Array((NodoArray) raiz, -1);
 				} else {
 					InsertarSimbolo_Array(((NodoArrayDeclarar) raiz).getNd(), -1);
+				}
+			}
+
+			if (raiz instanceof NodoFuncionDecl) {
+				if (InsertarSimboloFuncion((NodoFuncionDecl) raiz)) {
+					EntrarAmbito();
+					cargarTabla(((NodoFuncionDecl)raiz).getParametros());
+					cargarTabla(((NodoFuncionDecl)raiz).getCuerpo());
+					cargarTabla(((NodoFuncionDecl)raiz).getValorRetorno());
+					SalirAmbito(((NodoFuncionDecl)raiz).getNombre());
 				}
 			}
 
@@ -54,6 +71,18 @@ public class TablaSimbolos {
 			}
 
 			raiz = raiz.getHermanoDerecha();
+		}
+	}
+
+	private boolean InsertarSimboloFuncion(NodoFuncionDecl raiz) {
+		RegistroFuncion simbolo;
+		if (tabla.containsKey(raiz.getNombre())) {
+			return false;
+		} else {
+			simbolo = new RegistroFuncion(raiz.getNombre(), -1, direccion, NodoParametros.NumParametros(raiz.getParametros()));
+			direccion += 10;
+			tabla.put(raiz.getNombre(), simbolo);
+			return true;
 		}
 	}
 
@@ -97,5 +126,24 @@ public class TablaSimbolos {
 
 	public int getDireccion(String Clave) {
 		return BuscarSimbolo(Clave).getDireccionMemoria();
+	}
+
+	public void EntrarAmbito() {
+		tabla = new HashMap<String, RegistroSimbolo>();
+		pilaTablas.push(tabla);
+	}
+
+	public void SalirAmbito(String name) {
+		HashMap<String, RegistroSimbolo> ax;
+
+		if (!pilaTablas.isEmpty()) {
+			ax = pilaTablas.pop();
+			if (!pilaTablas.isEmpty()) {
+				tabla = pilaTablas.peek();
+				((RegistroFuncion)tabla.get(name)).setSimbolos(ax);
+			} else {
+				tabla = new HashMap<String, RegistroSimbolo>();
+			}
+		}
 	}
 }
