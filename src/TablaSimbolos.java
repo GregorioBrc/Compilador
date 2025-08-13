@@ -13,6 +13,7 @@ public class TablaSimbolos {
 	private int direccion; // Contador de las localidades de memoria asignadas a la tabla
 	private Stack<Integer> save_direccion;
 	private final int Size_Funcion = 10; // Tamao reservado para una funcion
+	private boolean Flag_Reconociendo = false;
 
 	public TablaSimbolos() {
 		super();
@@ -96,11 +97,14 @@ public class TablaSimbolos {
 	// true es nuevo no existe se insertara, false ya existe NO se vuelve a insertar
 	public boolean InsertarSimbolo(String identificador, int numLinea) {
 		RegistroSimbolo simbolo;
-		if (tabla.containsKey(identificador)) {
+		Flag_Reconociendo = true;
+		if (BuscarSimbolo(identificador) != null) {
+			Flag_Reconociendo = false;
 			return false;
 		} else {
 			simbolo = new RegistroSimbolo(identificador, numLinea, direccion++);
 			tabla.put(identificador, simbolo);
+			Flag_Reconociendo = false;
 			return true;
 		}
 	}
@@ -129,6 +133,9 @@ public class TablaSimbolos {
 			}
 		}
 
+		if (Flag_Reconociendo) {
+			return null;
+		}
 		throw new RuntimeException("Error: El simbolo " + identificador + " no ha sido declarado.");
 
 	}
@@ -158,7 +165,7 @@ public class TablaSimbolos {
 		}
 		pilaTablas.push(tabla);
 		save_direccion.push(direccion);
-		direccion -= Size_Funcion;
+		direccion -= Size_Funcion - 1;
 	}
 
 	private void SalirAmbito(String name) {

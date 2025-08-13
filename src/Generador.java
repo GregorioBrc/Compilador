@@ -57,7 +57,7 @@ public class Generador {
 	// prerequisito: Fijar la tabla de simbolos antes de generar el codigo objeto
 	private static void generar(NodoBase nodo) {
 		if (tablaSimbolos != null) {
-			if(nodo == null) {
+			if (nodo == null) {
 				return;
 			}
 
@@ -324,6 +324,8 @@ public class Generador {
 
 	private static void generarDeclaracionFuncion(NodoBase nodo) {
 		NodoFuncionDecl n = (NodoFuncionDecl) nodo;
+		int Temp_ = desplazamientoTmp;
+
 		if (UtGen.debug)
 			UtGen.emitirComentario("-> Funcion: " + n.getNombre());
 
@@ -331,15 +333,20 @@ public class Generador {
 		int dir_base = tablaSimbolos.getDireccion(n.getNombre());
 		int Cant_Para = NodoParametros.NumParametros(n.getParametros());
 
+		int Salto = UtGen.emitirSalto(1);
 		((RegistroFuncion) tablaSimbolos.BuscarSimbolo(n.getNombre())).setIni_Instruc(UtGen.emitirSalto(0));
 
-		int Salto = UtGen.emitirSalto(1);
+		UtGen.emitirRM("LD", UtGen.AC, desplazamientoTmp, UtGen.MP,
+				"Funcion: Direccion de retorno de la pila temporal");
+
+		UtGen.emitirRM("ST", UtGen.AC, dir_base, UtGen.GP,
+				"Funcion: Almaceno Direccion de retorno en la pila temporal");
 
 		for (int i = 1; i <= Cant_Para; i++) {
-			UtGen.emitirRM("LD", UtGen.AC, ++desplazamientoTmp, UtGen.MP,
+			UtGen.emitirRM("LD", UtGen.AC, desplazamientoTmp - i, UtGen.MP,
 					"Funcion: Cargar el parametro " + i + " desde la pila temporal");
 
-			UtGen.emitirRM("ST", UtGen.AC, dir_base + Cant_Para - i, UtGen.GP,
+			UtGen.emitirRM("ST", UtGen.AC, (dir_base + 1) + Cant_Para - i, UtGen.GP,
 					"Funcion: Almaceno el parametro " + i + " en la direccion base de la funcion");
 		}
 
@@ -351,28 +358,29 @@ public class Generador {
 			UtGen.emitirComentario("-> Valor de retorno de la funcion: " + n.getNombre());
 		generar(n.getValorRetorno());
 
-		int Local_Act = UtGen.emitirSalto(0);
-		UtGen.cargarRespaldo(Salto);
-		UtGen.emitirRM_Abs("JNE", UtGen.PC, Local_Act, "Funcion: Salto hacia el final de la funcion");
-		UtGen.restaurarRespaldo();
-		
-		//Cargar Direccion retorno de pila a Ac
-		UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP,
-				"Funcion: Cargar Direccion de retorno de la pila temporal");
+		// Cargar Direccion retorno Lugar 0 del ambito
+		UtGen.emitirRM("LD", UtGen.AC1, dir_base, UtGen.GP,
+				"Funcion: Cargar Direccion al registro");
 
 		UtGen.emitirRM("JNE", UtGen.PC, 1, UtGen.AC1, "Salto hacia la direccion de retorno de la funcion");
 
 		tablaSimbolos.SalirAmbito(n.getNombre(), true);
+
+		int Local_Act = UtGen.emitirSalto(0);
+		UtGen.cargarRespaldo(Salto);
+		UtGen.emitirRM_Abs("JNE", UtGen.PC, Local_Act, "Funcion: Salto hacia el final de la funcion");
+		UtGen.restaurarRespaldo();
+		desplazamientoTmp = Temp_;
 	}
 
 	private static void generarParams_CallFun(NodoBase params) {
 		if (UtGen.debug)
 			UtGen.emitirComentario("-> Parametros");
-		if (params.TieneHermano()) {
+		if (!params.TieneHermano()) {
 			return;
 		} else {
 			generar(((NodoParametros) params).getContent());
-			
+
 			UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP,
 					"op: push Parametro: " + ((NodoParametros) params).getContent().toString());
 
@@ -398,12 +406,12 @@ public class Generador {
 			UtGen.emitirComentario("-> Llamada Funcion: " + n.getNombre());
 
 		int SaltoFun = ((RegistroFuncion) tablaSimbolos.BuscarSimbolo(n.getNombre())).getIni_Instruc();
-		
-		UtGen.emitirRM("ST", UtGen.PC, desplazamientoTmp--, UtGen.MP,
+		int des_ = desplazamientoTmp--;
+		generar(n.getArg());
+
+		UtGen.emitirRM("ST", UtGen.PC, des_, UtGen.MP,
 				"op: push Direccion de retorno de la funcion: " + n.getNombre());
 
-		generar(n.getArg());
-		
 		UtGen.emitirRM_Abs("JNE", UtGen.PC, SaltoFun, "Llamada Funcion: Salto hacia la funcion " + n.getNombre());
 	}
 
