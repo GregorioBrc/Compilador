@@ -374,11 +374,12 @@ public class Generador {
 	}
 
 	private static void generarParams_CallFun(NodoBase params) {
-		if (UtGen.debug)
-			UtGen.emitirComentario("-> Parametros");
-		if (!params.TieneHermano()) {
+		if (params == null) {
 			return;
 		} else {
+			if (UtGen.debug)
+				UtGen.emitirComentario("-> Parametros");
+
 			generar(((NodoParametros) params).getContent());
 
 			UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP,
