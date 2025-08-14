@@ -78,6 +78,7 @@ public class TablaSimbolos {
 				cargarTabla(((NodoRepeat) raiz).getPrueba());
 
 			} else if (raiz instanceof NodoAsignacion) {
+				VerificarDeclaracion(((NodoAsignacion) raiz).getExpresion());
 				InsertarSimbolo(((NodoAsignacion) raiz).getIdentificador(), -1);
 				cargarTabla(((NodoAsignacion) raiz).getExpresion());
 			}
@@ -91,6 +92,30 @@ public class TablaSimbolos {
 			}
 
 			raiz = raiz.getHermanoDerecha();
+		}
+	}
+
+	private void VerificarDeclaracion(NodoBase raiz) {
+		if (raiz == null) {
+			return;
+		}
+
+		if (raiz instanceof NodoIdentificador) {
+			if (BuscarSimbolo(((NodoIdentificador) raiz).getNombre()) == null) {
+				throw new RuntimeException("Error: El identificador " + ((NodoIdentificador) raiz).getNombre()
+						+ " no ha sido declarado.");
+			}
+		} else if (raiz instanceof NodoArrayDeclarar) {
+			if (BuscarSimbolo(((NodoArrayDeclarar) raiz).getNd().getId()) == null) {
+				throw new RuntimeException("Error: El array " + ((NodoArrayDeclarar) raiz).getNd().getId()
+						+ " no ha sido declarado.");
+			}
+		} else if (raiz instanceof NodoOperacion) {
+			VerificarDeclaracion(((NodoOperacion) raiz).getOpIzquierdo());
+			VerificarDeclaracion(((NodoOperacion) raiz).getOpDerecho());
+
+		} else {
+			VerificarDeclaracion(raiz.getHermanoDerecha());
 		}
 	}
 
@@ -225,11 +250,11 @@ public class TablaSimbolos {
 	}
 
 	public RegistroFuncion getRegistroFuncion(String nombre) {
-		
+
 		if (pilaTablas.size() < 1) {
 			throw new RuntimeException("Error: No es el ambito de una funcion.");
 		}
-		
+
 		RegistroSimbolo rs = BuscarSimbolo(nombre);
 		if (rs instanceof RegistroFuncion) {
 			return (RegistroFuncion) rs;
