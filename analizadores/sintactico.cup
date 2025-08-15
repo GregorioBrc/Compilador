@@ -115,6 +115,9 @@ stmt        ::= if_stmt:sif	{: if(debug) System.out.println("\t regla 3a");
             | repeat_stmt:srep	{: if(debug) System.out.println("\t regla 3b"); 
 						RESULT=srep;
 						:}
+			| for_stmt:st_for {: if(debug) System.out.println("\t regla 3i");
+				RESULT = st_for;
+							:}
             | assign_stmt:sasi	{: if(debug) System.out.println("\t regla 3c"); 
 						RESULT=sasi;
 						:}
