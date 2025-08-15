@@ -120,6 +120,9 @@ espacio		= [ \t]+
 "/"             {	if(debug) System.out.println("token OVER");
 			return sf.newSymbol("OVER",sym.OVER);}
 
+"%" 			{ if(debug) System.out.println("token MOD");
+	        return sf.newSymbol("MOD", sym.MOD); }
+
 "("             {	if(debug) System.out.println("token LPAREN");
 			return sf.newSymbol("LPAREN",sym.LPAREN);}
 

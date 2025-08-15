@@ -37,6 +37,7 @@ terminal PLUS;
 terminal MINUS;
 terminal TIMES;
 terminal OVER;
+terminal MOD;
 terminal LPAREN;
 terminal RPAREN;
 terminal LBRACKET;
@@ -219,6 +220,8 @@ term        ::= term:exI TIMES factor:exD	{: if(debug) System.out.println("\t re
 		| term:exI OVER factor:exD	{: if(debug) System.out.println("\t regla 11b"); 
 						RESULT = new NodoOperacion(exI,tipoOp.entre,exD);
 						:}
+		| term:exI MOD factor:exD {: RESULT = new NodoOperacion(exI, tipoOp.mod,exD); :}
+
 		| factor:ex	{: if(debug) System.out.println("\t regla 11c"); 
 					RESULT=ex;
 					:}
