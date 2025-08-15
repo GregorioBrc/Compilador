@@ -48,6 +48,9 @@ terminal COMA;
 terminal FUN;
 terminal RETURN;
 terminal ENDF;
+terminal FOR;
+terminal TO;
+terminal DO;
 
 
 /* Simbolos No Terminales */
@@ -69,6 +72,7 @@ non terminal NodoBase Fun_Call;
 non terminal NodoBase Fun_Decla;
 non terminal NodoBase Fun_Params_Decla;
 non terminal NodoBase Fun_Params_Call;
+non terminal NodoBase for_stmt;
 
 
 /* Precedencia de operadores */
@@ -95,6 +99,11 @@ stmt_seq    ::= stmt_seq:ini SEMI stmt:sent	{: if(debug) System.out.println("\t 
 							RESULT=sent;
 						}
 						:}
+			| stmt_seq:ini SEMI
+                {: if(debug) System.out.println("\t regla 2c  (permitir ; final)");
+
+                RESULT = ini;
+               :}
             | stmt:sent	{: if(debug) System.out.println("\t regla 2b"); 
 				RESULT=sent;
 				:}
@@ -148,6 +157,12 @@ repeat_stmt ::= REPEAT stmt_seq:cuerpo UNTIL exp:prueba	{: if(debug) System.out.
 							RESULT = new NodoRepeat(cuerpo,prueba);
 							:}
 		;
+
+for_stmt ::= FOR ID:var ASSIGN exp:ini TO simple_exp:fin DO stmt_seq:body END {:
+					if (debug) System.out.println("\t regla 3h (for)");
+					RESULT = new NodoFor(var,ini,fin,body).For_to_Repeat();
+					:}
+					;
 
 assign_stmt ::= Identificador:var ASSIGN exp:ex	{: if(debug) System.out.println("\t regla 6 parte final");
 					if(var!=null){
