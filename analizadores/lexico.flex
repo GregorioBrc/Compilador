@@ -75,6 +75,15 @@ espacio		= [ \t]+
 "write"         {	if(debug) System.out.println("token WRITE");
 			return sf.newSymbol("WRITE",sym.WRITE);}
 
+"for"           { if(debug) System.out.println("token FOR");   
+            return sf.newSymbol("FOR", sym.FOR); }
+
+"to"            { if(debug) System.out.println("token TO");    
+            return sf.newSymbol("TO",  sym.TO); }
+
+"do"            { if(debug) System.out.println("token DO");    
+            return sf.newSymbol("DO",  sym.DO); }
+
 "var"         {	if(debug) System.out.println("token var");
 			return sf.newSymbol("var",sym.VAR);}
 

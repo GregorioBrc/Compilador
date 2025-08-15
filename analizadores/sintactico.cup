@@ -24,6 +24,7 @@ terminal REPEAT;
 terminal UNTIL;
 terminal READ;
 terminal WRITE;
+terminal FOR, TO, DO;
 terminal String ID;
 terminal String NUM;
 terminal ASSIGN;
@@ -62,6 +63,8 @@ non terminal NodoBase factor;
 non terminal NodoBase Array;
 non terminal NodoBase Identificador;
 
+
+
 /* Precedencia de operadores */
 precedence left PLUS;
 precedence left MINUS;
@@ -86,6 +89,11 @@ stmt_seq    ::= stmt_seq:ini SEMI stmt:sent	{: if(debug) System.out.println("\t 
 							RESULT=sent;
 						}
 						:}
+			| stmt_seq:ini SEMI
+                {: if(debug) System.out.println("\t regla 2c  (permitir ; final)");
+
+                RESULT = ini;
+               :}
             | stmt:sent	{: if(debug) System.out.println("\t regla 2b"); 
 				RESULT=sent;				
 				:}
@@ -114,6 +122,52 @@ stmt        ::= if_stmt:sif	{: if(debug) System.out.println("\t regla 3a");
 					RESULT = new NodoArrayDeclarar((NodoArray)arr);
 
 					:}
+			| FOR ID:var ASSIGN exp:ini TO simple_exp:fin DO stmt_seq:body END
+			{:
+                    if (debug) System.out.println("\t regla 3h (for)");
+                    
+                    NodoAsignacion initAsig = new NodoAsignacion(var.toString(), ini);
+                    
+                    NodoOperacion condEntrada =
+                        new NodoOperacion(
+                            new NodoIdentificador(var.toString()),
+                            tipoOp.menor_igual,
+                            fin
+                        );
+                    
+                    NodoOperacion sumaUno =
+                        new NodoOperacion(
+                            new NodoIdentificador(var.toString()),
+                            tipoOp.mas,
+                            new NodoValor(1)
+                        );
+                    NodoAsignacion inc =
+                        new NodoAsignacion(var.toString(), sumaUno);
+                    
+                    NodoBase bodyMasInc = body;
+                        if (bodyMasInc != null) {
+                            NodoBase cursor = bodyMasInc;
+                            while (cursor.TieneHermano()) cursor = cursor.getHermanoDerecha();
+                            cursor.setHermanoDerecha(inc);
+                            } else {
+                            bodyMasInc = inc;
+                        }
+                    
+                    NodoOperacion condSalida =
+                        new NodoOperacion(
+                        new NodoIdentificador(var.toString()),
+                        tipoOp.mayor,
+                        fin
+                    );
+                   
+                    NodoRepeat bucle = new NodoRepeat(bodyMasInc, condSalida);
+                    
+                    NodoIf envoltura = new NodoIf(condEntrada, bucle);
+                    
+                    initAsig.setHermanoDerecha(envoltura);
+                    RESULT = initAsig;
+                :}
+
             | error	{: if(debug) System.out.println("\t regla 3g"); 
 				System.out.println("Ocurrio error en cup # 0004 C");
 				RESULT=null;
