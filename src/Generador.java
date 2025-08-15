@@ -239,6 +239,17 @@ public class Generador {
 			case entre:
 				UtGen.emitirRO("DIV", UtGen.AC, UtGen.AC1, UtGen.AC, "op: /");
 				break;
+			case mod:
+				UtGen.emitirRM("ST", UtGen.AC1, desplazamientoTmp--, UtGen.MP, "mod: push left");
+                UtGen.emitirRM("ST", UtGen.AC,  desplazamientoTmp--, UtGen.MP, "mod: push right");
+                UtGen.emitirRO("DIV", UtGen.AC, UtGen.AC1, UtGen.AC, "mod: q = left / right");
+                UtGen.emitirRM("ST", UtGen.AC,  desplazamientoTmp--, UtGen.MP, "mod: push q");
+                UtGen.emitirRM("LD", UtGen.AC,  ++desplazamientoTmp, UtGen.MP, "mod: pop q -> AC");
+                UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP, "mod: pop right -> AC1");
+                UtGen.emitirRO("MUL", UtGen.AC, UtGen.AC1, UtGen.AC, "mod: p = right * q");
+                UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP, "mod: pop left -> AC1");
+                UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "mod: left - p");
+				break;
 			case menor:
 				UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: <");
 				UtGen.emitirRM("JLT", UtGen.AC, 2, UtGen.PC, "voy dos instrucciones mas alla si verdadero (AC<0)");
