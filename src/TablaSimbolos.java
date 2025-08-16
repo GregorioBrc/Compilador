@@ -54,6 +54,10 @@ public class TablaSimbolos {
 				ComprobarLlamada((NodoLlamada) raiz);
 			}
 
+			if (raiz instanceof NodoLeer) {
+				cargarTabla(new NodoIdentificador(((NodoLeer) raiz).getIdentificador()));
+			}
+
 			if (raiz instanceof NodoParametros) {
 				cargarTabla(((NodoParametros) raiz).getContent());
 			}
