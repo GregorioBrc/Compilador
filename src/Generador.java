@@ -114,20 +114,20 @@ public class Generador {
 		UtGen.emitirComentario("If: el salto hacia el else debe estar aqui");
 		/* Genero la parte THEN */
 		generar(n.getParteThen());
-		localidadSaltoEnd = UtGen.emitirSalto(1);
-		UtGen.emitirComentario("If: el salto hacia el final debe estar aqui");
-		localidadActual = UtGen.emitirSalto(0);
-		UtGen.cargarRespaldo(localidadSaltoElse);
-		UtGen.emitirRM_Abs("JEQ", UtGen.AC, localidadActual, "if: jmp hacia else");
-		UtGen.restaurarRespaldo();
-		/* Genero la parte ELSE */
 		if (n.getParteElse() != null) {
+			localidadSaltoEnd = UtGen.emitirSalto(1);
+			UtGen.emitirComentario("If: el salto hacia el final debe estar aqui");
+			/* Genero la parte ELSE */
 			generar(n.getParteElse());
 			localidadActual = UtGen.emitirSalto(0);
 			UtGen.cargarRespaldo(localidadSaltoEnd);
 			UtGen.emitirRM_Abs("LDA", UtGen.PC, localidadActual, "if: jmp hacia el final");
 			UtGen.restaurarRespaldo();
 		}
+		localidadActual = UtGen.emitirSalto(0);
+		UtGen.cargarRespaldo(localidadSaltoElse);
+		UtGen.emitirRM_Abs("JEQ", UtGen.AC, localidadActual, "if: jmp hacia else");
+		UtGen.restaurarRespaldo();
 
 		if (UtGen.debug)
 			UtGen.emitirComentario("<- if");
@@ -241,14 +241,14 @@ public class Generador {
 				break;
 			case mod:
 				UtGen.emitirRM("ST", UtGen.AC1, desplazamientoTmp--, UtGen.MP, "mod: push left");
-                UtGen.emitirRM("ST", UtGen.AC,  desplazamientoTmp--, UtGen.MP, "mod: push right");
-                UtGen.emitirRO("DIV", UtGen.AC, UtGen.AC1, UtGen.AC, "mod: q = left / right");
-                UtGen.emitirRM("ST", UtGen.AC,  desplazamientoTmp--, UtGen.MP, "mod: push q");
-                UtGen.emitirRM("LD", UtGen.AC,  ++desplazamientoTmp, UtGen.MP, "mod: pop q -> AC");
-                UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP, "mod: pop right -> AC1");
-                UtGen.emitirRO("MUL", UtGen.AC, UtGen.AC1, UtGen.AC, "mod: p = right * q");
-                UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP, "mod: pop left -> AC1");
-                UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "mod: left - p");
+				UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP, "mod: push right");
+				UtGen.emitirRO("DIV", UtGen.AC, UtGen.AC1, UtGen.AC, "mod: q = left / right");
+				UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP, "mod: push q");
+				UtGen.emitirRM("LD", UtGen.AC, ++desplazamientoTmp, UtGen.MP, "mod: pop q -> AC");
+				UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP, "mod: pop right -> AC1");
+				UtGen.emitirRO("MUL", UtGen.AC, UtGen.AC1, UtGen.AC, "mod: p = right * q");
+				UtGen.emitirRM("LD", UtGen.AC1, ++desplazamientoTmp, UtGen.MP, "mod: pop left -> AC1");
+				UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "mod: left - p");
 				break;
 			case menor:
 				UtGen.emitirRO("SUB", UtGen.AC, UtGen.AC1, UtGen.AC, "op: <");
