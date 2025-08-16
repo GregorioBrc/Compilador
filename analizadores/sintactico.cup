@@ -191,6 +191,14 @@ read_stmt   ::= READ ID:var	{: if(debug) System.out.println("\t regla 7");
 					System.out.println("Ocurrio error en cup # 0002");
 					}
 					:}
+				| READ Array:arr {: if(debug) System.out.println("\t regla 7b, Leer Array");
+					if(arr!=null && arr instanceof NodoArray)
+					RESULT = new NodoLeer((NodoArray)arr);
+					else{
+					RESULT = null;
+					System.out.println("Ocurrio error en cup # 0002");
+					}
+				:}
 		;
 
 write_stmt  ::= WRITE exp:ex	{: if(debug) System.out.println("\t regla 8");

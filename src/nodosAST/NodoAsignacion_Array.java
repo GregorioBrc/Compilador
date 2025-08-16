@@ -14,6 +14,11 @@ public class NodoAsignacion_Array extends NodoAsignacion {
 			this.indice = indice;
 		}
 
+		public NodoAsignacion_Array(NodoArray Arr) {
+			super(Arr.getId());
+			indice = Arr.getArg();
+		}
+
 		public NodoBase getIndice() {
 			return indice;
 		}

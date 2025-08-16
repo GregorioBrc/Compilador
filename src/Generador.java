@@ -1,5 +1,7 @@
 
+import Registros.RegistroArray;
 import Registros.RegistroFuncion;
+import Registros.RegistroSimbolo;
 import nodosAST.*;
 
 public class Generador {
@@ -180,9 +182,15 @@ public class Generador {
 		if (UtGen.debug)
 			UtGen.emitirComentario("-> leer");
 		UtGen.emitirRO("IN", UtGen.AC, 0, 0, "leer: lee un valor entero ");
-		direccion = tablaSimbolos.getDireccion(n.getIdentificador());
-		UtGen.emitirRM("ST", UtGen.AC, direccion, UtGen.GP,
-				"leer: almaceno el valor entero leido en el id " + n.getIdentificador());
+
+		if (n.getIdent() instanceof NodoArray) {
+			generarAsignacionArray(new NodoAsignacion_Array((NodoArray)n.getIdent()));
+		} else {
+			direccion = tablaSimbolos.getDireccion(n.getIdentificador());
+			UtGen.emitirRM("ST", UtGen.AC, direccion, UtGen.GP,
+					"leer: almaceno el valor entero leido en el id " + n.getIdentificador());
+		}
+
 		if (UtGen.debug)
 			UtGen.emitirComentario("<- leer");
 	}
@@ -314,7 +322,9 @@ public class Generador {
 		int dir_base = tablaSimbolos.getDireccion(n.getIdentificador());
 
 		// Generar Lado derecho, guarda AC
-		generar(n.getExpresion());
+		if (n.getExpresion() != null) {
+			generar(n.getExpresion());
+		}
 		UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP,
 				"op: push Resultado");
 
