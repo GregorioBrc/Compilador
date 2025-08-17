@@ -181,7 +181,7 @@ public class Generador {
 		UtGen.emitirRO("IN", UtGen.AC, 0, 0, "leer: lee un valor entero ");
 
 		if (n.getIdent() instanceof NodoArray) {
-			generarAsignacionArray(new NodoAsignacion_Array((NodoArray)n.getIdent()));
+			generarAsignacionArray(new NodoAsignacion_Array((NodoArray) n.getIdent()));
 		} else {
 			direccion = tablaSimbolos.getDireccion(n.getIdentificador());
 			UtGen.emitirRM("ST", UtGen.AC, direccion, UtGen.GP,
@@ -434,6 +434,7 @@ public class Generador {
 		if (UtGen.debug)
 			UtGen.emitirComentario("-> Llamada Funcion: " + n.getNombre());
 
+		int Temp_save = desplazamientoTmp;
 		int SaltoFun = ((RegistroFuncion) tablaSimbolos.BuscarSimbolo(n.getNombre())).getIni_Instruc();
 		int des_ = desplazamientoTmp--;
 		generar(n.getArg());
@@ -442,6 +443,7 @@ public class Generador {
 				"op: push Direccion de retorno de la funcion: " + n.getNombre());
 
 		UtGen.emitirRM_Abs("JNE", UtGen.PC, SaltoFun, "Llamada Funcion: Salto hacia la funcion " + n.getNombre());
+		desplazamientoTmp = Temp_save;
 	}
 
 	// TODO: enviar preludio a archivo de salida, obtener antes su nombre

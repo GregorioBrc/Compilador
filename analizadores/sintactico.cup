@@ -323,6 +323,9 @@ Fun_Decla ::= FUN ID:id LPAREN Fun_Params_Decla:params RPAREN stmt_seq:body ENDF
 			| FUN ID:id LPAREN Fun_Params_Decla:params RPAREN stmt_seq:body RETURN simple_exp:exp SEMI ENDF {:System.out.println("Declarar Funcion return");
 					RESULT = new NodoFuncionDecl(id, (NodoParametros)params, body, new NodoReturn(exp));
 					:}
+			| FUN ID:id LPAREN Fun_Params_Decla:params RPAREN RETURN simple_exp:exp SEMI ENDF {:System.out.println("Declarar Funcion return");
+					RESULT = new NodoFuncionDecl(id, (NodoParametros)params, null, new NodoReturn(exp));
+					:}
 			;
 
 Fun_Call ::= ID:id LPAREN Fun_Params_Call:Params RPAREN {:System.out.println("llamada Funcion");
