@@ -32,6 +32,7 @@ public class Generador {
 	 * y extraccion de esta pila
 	 */
 	private static int desplazamientoTmp = 0;
+	private static int Ax_Dir_Base = 0;
 	private static TablaSimbolos tablaSimbolos = null;
 
 	public static void setTablaSimbolos(TablaSimbolos tabla) {
@@ -353,6 +354,7 @@ public class Generador {
 	private static void generarDeclaracionFuncion(NodoBase nodo) {
 		NodoFuncionDecl n = (NodoFuncionDecl) nodo;
 		int Temp_ = desplazamientoTmp;
+		desplazamientoTmp = -100;
 
 		if (UtGen.debug)
 			UtGen.emitirComentario("-> Funcion: " + n.getNombre());
@@ -363,20 +365,6 @@ public class Generador {
 
 		int Salto = UtGen.emitirSalto(1);
 		((RegistroFuncion) tablaSimbolos.BuscarSimbolo(n.getNombre())).setIni_Instruc(UtGen.emitirSalto(0));
-
-		UtGen.emitirRM("LD", UtGen.AC, desplazamientoTmp, UtGen.MP,
-				"Funcion: Direccion de retorno de la pila temporal");
-
-		UtGen.emitirRM("ST", UtGen.AC, dir_base, UtGen.GP,
-				"Funcion: Almaceno Direccion de retorno en la pila temporal");
-
-		for (int i = 1; i <= Cant_Para; i++) {
-			UtGen.emitirRM("LD", UtGen.AC, desplazamientoTmp - i, UtGen.MP,
-					"Funcion: Cargar el parametro " + i + " desde la pila temporal");
-
-			UtGen.emitirRM("ST", UtGen.AC, (dir_base + 1) + Cant_Para - i, UtGen.GP,
-					"Funcion: Almaceno el parametro " + i + " en la direccion base de la funcion");
-		}
 
 		if (UtGen.debug)
 			UtGen.emitirComentario("-> Cuerpo de la funcion: " + n.getNombre());
@@ -410,7 +398,7 @@ public class Generador {
 
 			generar(((NodoParametros) params).getContent());
 
-			UtGen.emitirRM("ST", UtGen.AC, desplazamientoTmp--, UtGen.MP,
+			UtGen.emitirRM("ST", UtGen.AC, Ax_Dir_Base++, UtGen.GP,
 					"op: push Parametro: " + ((NodoParametros) params).getContent().toString());
 
 			generarParams_CallFun(params.getHermanoDerecha());
@@ -436,17 +424,17 @@ public class Generador {
 
 		int Temp_save = desplazamientoTmp;
 		int SaltoFun = ((RegistroFuncion) tablaSimbolos.BuscarSimbolo(n.getNombre())).getIni_Instruc();
-		int des_ = desplazamientoTmp--;
-		generar(n.getArg());
-
-		UtGen.emitirRM("ST", UtGen.PC, des_, UtGen.MP,
-				"op: push Direccion de retorno de la funcion: " + n.getNombre());
-
+		Ax_Dir_Base = ((RegistroFuncion) tablaSimbolos.BuscarSimbolo(n.getNombre())).getDireccionMemoria() + 1;
+		generarParams_CallFun(n.getArg());
+		
+		int ax_dir = ((RegistroFuncion) tablaSimbolos.BuscarSimbolo(n.getNombre())).getDireccionMemoria();
+		UtGen.emitirRM("ST", UtGen.PC, ax_dir, UtGen.GP,
+		"op: push Direccion de retorno de la funcion: " + n.getNombre());
+		
 		UtGen.emitirRM_Abs("JNE", UtGen.PC, SaltoFun, "Llamada Funcion: Salto hacia la funcion " + n.getNombre());
 		desplazamientoTmp = Temp_save;
 	}
 
-	// TODO: enviar preludio a archivo de salida, obtener antes su nombre
 	private static void generarPreludioEstandar() {
 		UtGen.emitirComentario("Compilacion TINY para el codigo objeto TM");
 		UtGen.emitirComentario("Archivo: " + "NOMBRE_ARREGLAR");
