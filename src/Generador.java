@@ -1,7 +1,4 @@
-
-import Registros.RegistroArray;
 import Registros.RegistroFuncion;
-import Registros.RegistroSimbolo;
 import nodosAST.*;
 
 public class Generador {

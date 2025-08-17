@@ -30,7 +30,9 @@ public class TablaSimbolos {
 				InsertarSimbolo(((NodoIdentificador) raiz).getNombre(), -1);
 			} else if (raiz instanceof NodoArray || raiz instanceof NodoArrayDeclarar) {
 				if (raiz instanceof NodoArray) {
-					InsertarSimbolo_Array((NodoArray) raiz, -1);
+					if (!InsertarSimbolo_Array((NodoArray) raiz, -1)) {
+						ValidarArgumentoArray(raiz, getTamanoArray(((NodoArray) raiz)));
+					}
 				} else {
 					InsertarSimbolo_Array(((NodoArrayDeclarar) raiz).getNd(), -1);
 				}
@@ -99,27 +101,29 @@ public class TablaSimbolos {
 		}
 	}
 
-	private void VerificarDeclaracion(NodoBase raiz) {
+	private int getTamanoArray(NodoArray n) {
+		RegistroArray ax = (RegistroArray) BuscarSimbolo(n.getId());
+		return ax.getTamano();
+	}
+
+	private void ValidarArgumentoArray(NodoBase raiz, int tam) {
 		if (raiz == null) {
 			return;
-		}
-
-		if (raiz instanceof NodoIdentificador) {
-			if (BuscarSimbolo(((NodoIdentificador) raiz).getNombre()) == null) {
-				throw new RuntimeException("Error: El identificador " + ((NodoIdentificador) raiz).getNombre()
-						+ " no ha sido declarado.");
-			}
-		} else if (raiz instanceof NodoArrayDeclarar) {
-			if (BuscarSimbolo(((NodoArrayDeclarar) raiz).getNd().getId()) == null) {
-				throw new RuntimeException("Error: El array " + ((NodoArrayDeclarar) raiz).getNd().getId()
-						+ " no ha sido declarado.");
+		} else if (raiz instanceof NodoArray) {
+			ValidarArgumentoArray(((NodoArray) raiz).getArg(), tam);
+		} else if (raiz instanceof NodoValor) {
+			NodoValor ax_n = (NodoValor) raiz;
+			if (ax_n.getValor() >= tam) {
+				throw new RuntimeException("Error: El argumento del array es mayor que su tamano.");
+			} else if (ax_n.getValor() < 0) {
+				throw new RuntimeException("Error: El argumento del array no puede ser negativo.");
 			}
 		} else if (raiz instanceof NodoOperacion) {
-			VerificarDeclaracion(((NodoOperacion) raiz).getOpIzquierdo());
-			VerificarDeclaracion(((NodoOperacion) raiz).getOpDerecho());
-
-		} else {
-			VerificarDeclaracion(raiz.getHermanoDerecha());
+			NodoOperacion ax_n = (NodoOperacion) raiz;
+			if (ax_n.getOpIzquierdo() == null && ax_n.getOperacion() == tipoOp.menos
+					&& ax_n.getOpDerecho() instanceof NodoValor) {
+				throw new RuntimeException("Error: El argumento del array no puede ser negativo.");
+			}
 		}
 	}
 
@@ -177,14 +181,14 @@ public class TablaSimbolos {
 		}
 	}
 
+	public int getDireccion(String Clave) {
+		return BuscarSimbolo(Clave).getDireccionMemoria();
+	}
+
 	// public RegistroSimbolo BuscarSimbolo(String identificador) {
 	// RegistroSimbolo simbolo = (RegistroSimbolo) tabla.get(identificador);
 	// return simbolo;
 	// }
-
-	public int getDireccion(String Clave) {
-		return BuscarSimbolo(Clave).getDireccionMemoria();
-	}
 
 	public void EntrarAmbito(String Nom_Ambito) {
 		if (Nom_Ambito == null) {
@@ -195,6 +199,59 @@ public class TablaSimbolos {
 		pilaTablas.push(tabla);
 		save_direccion.push(direccion);
 		direccion -= Size_Funcion - 1;
+	}
+
+	public void SalirAmbito(String name, boolean a) {
+		if (!pilaTablas.isEmpty()) {
+			pilaTablas.pop();
+			if (!pilaTablas.isEmpty()) {
+				tabla = pilaTablas.peek();
+			} else {
+				tabla = new HashMap<String, RegistroSimbolo>();
+			}
+		}
+	}
+
+	public HashMap<String, RegistroSimbolo> getTabla() {
+		return tabla;
+	}
+
+	public RegistroFuncion getRegistroFuncion(String nombre) {
+
+		if (pilaTablas.size() < 1) {
+			throw new RuntimeException("Error: No es el ambito de una funcion.");
+		}
+
+		RegistroSimbolo rs = BuscarSimbolo(nombre);
+		if (rs instanceof RegistroFuncion) {
+			return (RegistroFuncion) rs;
+		} else {
+			throw new RuntimeException("Error: El simbolo " + nombre + " no es una funcion.");
+		}
+	}
+
+	private void VerificarDeclaracion(NodoBase raiz) {
+		if (raiz == null) {
+			return;
+		}
+
+		if (raiz instanceof NodoIdentificador) {
+			if (BuscarSimbolo(((NodoIdentificador) raiz).getNombre()) == null) {
+				throw new RuntimeException("Error: El identificador " + ((NodoIdentificador) raiz).getNombre()
+						+ " no ha sido declarado.");
+			}
+		} else if (raiz instanceof NodoArrayDeclarar) {
+			if (BuscarSimbolo(((NodoArrayDeclarar) raiz).getNd().getId()) == null) {
+				throw new RuntimeException("Error: El array " + ((NodoArrayDeclarar) raiz).getNd().getId()
+						+ " no ha sido declarado.");
+			}
+		} else if (raiz instanceof NodoOperacion) {
+			VerificarDeclaracion(((NodoOperacion) raiz).getOpIzquierdo());
+			VerificarDeclaracion(((NodoOperacion) raiz).getOpDerecho());
+
+		} else {
+			VerificarDeclaracion(raiz.getHermanoDerecha());
+		}
 	}
 
 	private void SalirAmbito(String name) {
@@ -209,17 +266,6 @@ public class TablaSimbolos {
 				tabla = new HashMap<String, RegistroSimbolo>();
 			}
 			direccion = save_direccion.pop(); // Recupero la direccion de memoria del ambito anterior
-		}
-	}
-
-	public void SalirAmbito(String name, boolean a) {
-		if (!pilaTablas.isEmpty()) {
-			pilaTablas.pop();
-			if (!pilaTablas.isEmpty()) {
-				tabla = pilaTablas.peek();
-			} else {
-				tabla = new HashMap<String, RegistroSimbolo>();
-			}
 		}
 	}
 
@@ -246,24 +292,6 @@ public class TablaSimbolos {
 			direccion += Size_Funcion;
 			tabla.put(raiz.getNombre(), simbolo);
 			return true;
-		}
-	}
-
-	public HashMap<String, RegistroSimbolo> getTabla() {
-		return tabla;
-	}
-
-	public RegistroFuncion getRegistroFuncion(String nombre) {
-
-		if (pilaTablas.size() < 1) {
-			throw new RuntimeException("Error: No es el ambito de una funcion.");
-		}
-
-		RegistroSimbolo rs = BuscarSimbolo(nombre);
-		if (rs instanceof RegistroFuncion) {
-			return (RegistroFuncion) rs;
-		} else {
-			throw new RuntimeException("Error: El simbolo " + nombre + " no es una funcion.");
 		}
 	}
 

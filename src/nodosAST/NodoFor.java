@@ -27,6 +27,7 @@ public class NodoFor extends NodoBase {
                 new NodoIdentificador(Id_Var),
                 tipoOp.mas,
                 new NodoValor(1));
+
         NodoAsignacion inc = new NodoAsignacion(Id_Var, sumaUno);
 
         NodoBase bodyMasInc = Body;
@@ -41,7 +42,7 @@ public class NodoFor extends NodoBase {
 
         NodoOperacion condSalida = new NodoOperacion(
                 new NodoIdentificador(Id_Var),
-                tipoOp.mayor,
+                tipoOp.mayor_igual,
                 Fin_Exp);
 
         NodoRepeat bucle = new NodoRepeat(bodyMasInc, condSalida);
